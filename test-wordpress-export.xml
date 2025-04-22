@@ -1,127 +1,137 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0"
-	xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"
-	xmlns:content="http://purl.org/rss/1.0/modules/content/"
-	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
-	xmlns:dc="http://purl.org/dc/elements/1.1/"
-	xmlns:wp="http://wordpress.org/export/1.2/"
+        xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"
+        xmlns:content="http://purl.org/rss/1.0/modules/content/"
+        xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:wp="http://wordpress.org/export/1.2/"
 >
 <channel>
-	<title>Test WordPress Blog</title>
-	<link>https://example.com</link>
-	<description>Just a test WordPress blog for XML conversion</description>
-	<pubDate>Mon, 22 Apr 2025 10:00:00 +0000</pubDate>
-	<language>en-US</language>
-	<wp:wxr_version>1.2</wp:wxr_version>
-	<wp:base_site_url>https://example.com</wp:base_site_url>
-	<wp:base_blog_url>https://example.com</wp:base_blog_url>
-	
-	<item>
-		<title>Sample Blog Post 1</title>
-		<link>https://example.com/sample-blog-post-1</link>
-		<pubDate>Mon, 22 Apr 2025 09:00:00 +0000</pubDate>
-		<dc:creator><![CDATA[admin]]></dc:creator>
-		<guid isPermaLink="false">https://example.com/?p=1</guid>
-		<description></description>
-		<content:encoded><![CDATA[
-			<!-- wp:paragraph -->
-			<p>This is the <strong>first</strong> sample blog post for testing the WordPress XML to Markdown converter.</p>
-			<!-- /wp:paragraph -->
-			
-			<!-- wp:heading -->
-			<h2>Introduction</h2>
-			<!-- /wp:heading -->
-			
-			<!-- wp:paragraph -->
-			<p>This converter allows you to transform WordPress exports into clean Markdown files.</p>
-			<!-- /wp:paragraph -->
-			
-			<!-- wp:image {"id":123,"sizeSlug":"large"} -->
-			<figure class="wp-block-image size-large"><img src="https://example.com/wp-content/uploads/2025/04/sample-image-1.jpg" alt="Sample image" class="wp-image-123"/><figcaption>A sample image caption</figcaption></figure>
-			<!-- /wp:image -->
-			
-			<!-- wp:list -->
-			<ul>
-				<li>Feature 1: Convert HTML to Markdown</li>
-				<li>Feature 2: Extract metadata</li>
-				<li>Feature 3: Handle WordPress shortcodes</li>
-			</ul>
-			<!-- /wp:list -->
-			
-			<!-- wp:code -->
-			<pre class="wp-block-code"><code>function testCode() {
+        <title>Test WordPress Blog</title>
+        <link>https://example.com</link>
+        <description>Just a test WordPress blog for XML conversion</description>
+        <pubDate>Mon, 22 Apr 2025 10:00:00 +0000</pubDate>
+        <language>en-US</language>
+        <wp:wxr_version>1.2</wp:wxr_version>
+        <wp:base_site_url>https://example.com</wp:base_site_url>
+        <wp:base_blog_url>https://example.com</wp:base_blog_url>
+        
+        <item>
+                <title>Sample Blog Post 1</title>
+                <link>https://example.com/sample-blog-post-1</link>
+                <pubDate>Mon, 22 Apr 2025 09:00:00 +0000</pubDate>
+                <dc:creator><![CDATA[John Smith]]></dc:creator>
+                <guid isPermaLink="false">https://example.com/?p=1</guid>
+                <description></description>
+                <content:encoded><![CDATA[
+                        <!-- wp:paragraph -->
+                        <p>This is the <strong>first</strong> sample blog post for testing the WordPress XML to Markdown converter.</p>
+                        <!-- /wp:paragraph -->
+                        
+                        <!-- wp:heading -->
+                        <h2>Introduction</h2>
+                        <!-- /wp:heading -->
+                        
+                        <!-- wp:paragraph -->
+                        <p>This converter allows you to transform WordPress exports into clean Markdown files.</p>
+                        <!-- /wp:paragraph -->
+                        
+                        <!-- wp:image {"id":123,"sizeSlug":"large"} -->
+                        <figure class="wp-block-image size-large"><img src="https://example.com/wp-content/uploads/2025/04/sample-image-1.jpg" alt="Sample image" class="wp-image-123"/><figcaption>A sample image caption</figcaption></figure>
+                        <!-- /wp:image -->
+                        
+                        <!-- wp:list -->
+                        <ul>
+                                <li>Feature 1: Convert HTML to Markdown</li>
+                                <li>Feature 2: Extract metadata</li>
+                                <li>Feature 3: Handle WordPress shortcodes</li>
+                        </ul>
+                        <!-- /wp:list -->
+                        
+                        <!-- wp:code -->
+                        <pre class="wp-block-code"><code>function testCode() {
   console.log("This is a code block");
 }</code></pre>
-			<!-- /wp:code -->
-		]]></content:encoded>
-		<excerpt:encoded><![CDATA[This is a sample excerpt for the first blog post.]]></excerpt:encoded>
-		<wp:post_date>2025-04-22 09:00:00</wp:post_date>
-		<wp:post_date_gmt>2025-04-22 09:00:00</wp:post_date_gmt>
-		<wp:post_modified>2025-04-22 09:15:00</wp:post_modified>
-		<wp:post_modified_gmt>2025-04-22 09:15:00</wp:post_modified_gmt>
-		<wp:comment_status>open</wp:comment_status>
-		<wp:ping_status>open</wp:ping_status>
-		<wp:post_name>sample-blog-post-1</wp:post_name>
-		<wp:status>publish</wp:status>
-		<wp:post_type>post</wp:post_type>
-		<category domain="category" nicename="test-category"><![CDATA[Test Category]]></category>
-		<category domain="post_tag" nicename="sample"><![CDATA[sample]]></category>
-		<category domain="post_tag" nicename="test"><![CDATA[test]]></category>
-	</item>
-	
-	<item>
-		<title>Sample Blog Post 2</title>
-		<link>https://example.com/sample-blog-post-2</link>
-		<pubDate>Mon, 22 Apr 2025 10:30:00 +0000</pubDate>
-		<dc:creator><![CDATA[admin]]></dc:creator>
-		<guid isPermaLink="false">https://example.com/?p=2</guid>
-		<description></description>
-		<content:encoded><![CDATA[
-			<!-- wp:paragraph -->
-			<p>This is the second sample blog post with some <em>different</em> formatting.</p>
-			<!-- /wp:paragraph -->
-			
-			<!-- wp:heading {"level":3} -->
-			<h3>Second Post Heading</h3>
-			<!-- /wp:heading -->
-			
-			<!-- wp:paragraph -->
-			<p>Let's test some WordPress-specific features:</p>
-			<!-- /wp:paragraph -->
-			
-			<!-- wp:shortcode -->
-			[gallery ids="123,124,125"]
-			<!-- /wp:shortcode -->
-			
-			<!-- wp:table -->
-			<figure class="wp-block-table"><table><thead><tr><th>Column 1</th><th>Column 2</th></tr></thead><tbody><tr><td>Data 1</td><td>Data 2</td></tr><tr><td>Data 3</td><td>Data 4</td></tr></tbody></table></figure>
-			<!-- /wp:table -->
-			
-			<!-- wp:quote -->
-			<blockquote class="wp-block-quote"><p>This is a blockquote to test quote conversion.</p><cite>Test Author</cite></blockquote>
-			<!-- /wp:quote -->
-			
-			<!-- wp:separator -->
-			<hr class="wp-block-separator"/>
-			<!-- /wp:separator -->
-			
-			<!-- wp:paragraph -->
-			<p>The end of the second post.</p>
-			<!-- /wp:paragraph -->
-		]]></content:encoded>
-		<excerpt:encoded><![CDATA[This is a sample excerpt for the second blog post.]]></excerpt:encoded>
-		<wp:post_date>2025-04-22 10:30:00</wp:post_date>
-		<wp:post_date_gmt>2025-04-22 10:30:00</wp:post_date_gmt>
-		<wp:post_modified>2025-04-22 10:45:00</wp:post_modified>
-		<wp:post_modified_gmt>2025-04-22 10:45:00</wp:post_modified_gmt>
-		<wp:comment_status>open</wp:comment_status>
-		<wp:ping_status>open</wp:ping_status>
-		<wp:post_name>sample-blog-post-2</wp:post_name>
-		<wp:status>publish</wp:status>
-		<wp:post_type>post</wp:post_type>
-		<category domain="category" nicename="another-category"><![CDATA[Another Category]]></category>
-		<category domain="post_tag" nicename="example"><![CDATA[example]]></category>
-		<category domain="post_tag" nicename="test"><![CDATA[test]]></category>
-	</item>
+                        <!-- /wp:code -->
+                ]]></content:encoded>
+                <excerpt:encoded><![CDATA[This is a sample excerpt for the first blog post.]]></excerpt:encoded>
+                <wp:post_date>2025-04-22 09:00:00</wp:post_date>
+                <wp:post_date_gmt>2025-04-22 09:00:00</wp:post_date_gmt>
+                <wp:post_modified>2025-04-22 09:15:00</wp:post_modified>
+                <wp:post_modified_gmt>2025-04-22 09:15:00</wp:post_modified_gmt>
+                <wp:comment_status>open</wp:comment_status>
+                <wp:ping_status>open</wp:ping_status>
+                <wp:post_name>sample-blog-post-1</wp:post_name>
+                <wp:status>publish</wp:status>
+                <wp:post_type>post</wp:post_type>
+                <wp:postmeta>
+                        <wp:meta_key>_featured_image</wp:meta_key>
+                        <wp:meta_value><![CDATA[https://example.com/wp-content/uploads/2025/04/sample-image-1.jpg]]></wp:meta_value>
+                </wp:postmeta>
+                <wp:postmeta>
+                        <wp:meta_key>_custom_field</wp:meta_key>
+                        <wp:meta_value><![CDATA[Custom value goes here]]></wp:meta_value>
+                </wp:postmeta>
+                <category domain="category" nicename="test-category"><![CDATA[Test Category]]></category>
+                <category domain="category" nicename="important-stuff"><![CDATA[Important Stuff]]></category>
+                <category domain="post_tag" nicename="sample"><![CDATA[sample]]></category>
+                <category domain="post_tag" nicename="test"><![CDATA[test]]></category>
+                <category domain="post_tag" nicename="conversion"><![CDATA[conversion]]></category>
+        </item>
+        
+        <item>
+                <title>Sample Blog Post 2</title>
+                <link>https://example.com/sample-blog-post-2</link>
+                <pubDate>Mon, 22 Apr 2025 10:30:00 +0000</pubDate>
+                <dc:creator><![CDATA[admin]]></dc:creator>
+                <guid isPermaLink="false">https://example.com/?p=2</guid>
+                <description></description>
+                <content:encoded><![CDATA[
+                        <!-- wp:paragraph -->
+                        <p>This is the second sample blog post with some <em>different</em> formatting.</p>
+                        <!-- /wp:paragraph -->
+                        
+                        <!-- wp:heading {"level":3} -->
+                        <h3>Second Post Heading</h3>
+                        <!-- /wp:heading -->
+                        
+                        <!-- wp:paragraph -->
+                        <p>Let's test some WordPress-specific features:</p>
+                        <!-- /wp:paragraph -->
+                        
+                        <!-- wp:shortcode -->
+                        [gallery ids="123,124,125"]
+                        <!-- /wp:shortcode -->
+                        
+                        <!-- wp:table -->
+                        <figure class="wp-block-table"><table><thead><tr><th>Column 1</th><th>Column 2</th></tr></thead><tbody><tr><td>Data 1</td><td>Data 2</td></tr><tr><td>Data 3</td><td>Data 4</td></tr></tbody></table></figure>
+                        <!-- /wp:table -->
+                        
+                        <!-- wp:quote -->
+                        <blockquote class="wp-block-quote"><p>This is a blockquote to test quote conversion.</p><cite>Test Author</cite></blockquote>
+                        <!-- /wp:quote -->
+                        
+                        <!-- wp:separator -->
+                        <hr class="wp-block-separator"/>
+                        <!-- /wp:separator -->
+                        
+                        <!-- wp:paragraph -->
+                        <p>The end of the second post.</p>
+                        <!-- /wp:paragraph -->
+                ]]></content:encoded>
+                <excerpt:encoded><![CDATA[This is a sample excerpt for the second blog post.]]></excerpt:encoded>
+                <wp:post_date>2025-04-22 10:30:00</wp:post_date>
+                <wp:post_date_gmt>2025-04-22 10:30:00</wp:post_date_gmt>
+                <wp:post_modified>2025-04-22 10:45:00</wp:post_modified>
+                <wp:post_modified_gmt>2025-04-22 10:45:00</wp:post_modified_gmt>
+                <wp:comment_status>open</wp:comment_status>
+                <wp:ping_status>open</wp:ping_status>
+                <wp:post_name>sample-blog-post-2</wp:post_name>
+                <wp:status>publish</wp:status>
+                <wp:post_type>post</wp:post_type>
+                <category domain="category" nicename="another-category"><![CDATA[Another Category]]></category>
+                <category domain="post_tag" nicename="example"><![CDATA[example]]></category>
+                <category domain="post_tag" nicename="test"><![CDATA[test]]></category>
+        </item>
 </channel>
 </rss>

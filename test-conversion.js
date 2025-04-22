@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { MemStorage } from './server/storage.js';
+import { MemStorage } from './storage-test.js';
 import sax from 'sax';
 import TurndownService from 'turndown';
 
@@ -108,6 +108,10 @@ async function runTest() {
     }
     
     // Set up event handlers for the SAX parser
+    let inPostMeta = false;
+    let currentMetaKey = '';
+    let currentMetaValue = '';
+    
     parser.onopentag = (node) => {
       currentTag = node.name;
       
@@ -121,9 +125,14 @@ async function runTest() {
           metadata: {
             author: '',
             categories: [],
-            tags: []
+            tags: [],
+            custom_fields: {}
           }
         };
+      } else if (node.name === 'wp:postmeta') {
+        inPostMeta = true;
+        currentMetaKey = '';
+        currentMetaValue = '';
       }
     };
     
@@ -224,12 +233,14 @@ async function runTest() {
     const posts = await storage.getMarkdownPosts(conversion.id);
     console.log(`\nRetrieved ${posts.length} posts for conversion ID ${conversion.id}`);
     
-    // Log the first post's full content
+    // Log all posts' full content
     if (posts.length > 0) {
-      console.log('\nFirst post full markdown content:');
-      console.log('-'.repeat(80));
-      console.log(posts[0].content);
-      console.log('-'.repeat(80));
+      for (let i = 0; i < posts.length; i++) {
+        console.log(`\nPost ${i+1} full markdown content:`);
+        console.log('-'.repeat(80));
+        console.log(posts[i].content);
+        console.log('-'.repeat(80));
+      }
     }
     
     console.log('\nTest completed successfully!');
