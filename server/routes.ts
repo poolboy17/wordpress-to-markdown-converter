@@ -46,25 +46,27 @@ const turndownService = new TurndownService({
 
 // Add rules for WordPress specific elements
 turndownService.addRule('wpImage', {
-  filter: (node) => {
-    return node.nodeName === 'IMG' && 
-      (node.getAttribute('class')?.includes('wp-image') || node.getAttribute('src')?.includes('wp-content'));
+  filter: (node: any): boolean => {
+    if (!node || node.nodeName !== 'IMG') return false;
+    const imgClass = node.getAttribute ? node.getAttribute('class') : null;
+    const imgSrc = node.getAttribute ? node.getAttribute('src') : null;
+    return (imgClass?.includes('wp-image') || imgSrc?.includes('wp-content')) || false;
   },
-  replacement: (content, node) => {
-    const alt = node.getAttribute('alt') || '';
-    const src = node.getAttribute('src') || '';
+  replacement: (content: string, node: any): string => {
+    const alt = node.getAttribute ? node.getAttribute('alt') || '' : '';
+    const src = node.getAttribute ? node.getAttribute('src') || '' : '';
     return `![${alt}](${src})`;
   }
 });
 
 // Handle shortcodes
 turndownService.addRule('wpShortcode', {
-  filter: (node) => {
-    if (node.nodeName !== '#text') return false;
+  filter: (node: any): boolean => {
+    if (!node || node.nodeName !== '#text') return false;
     const content = node.textContent || '';
     return /\[.+?\]/.test(content);
   },
-  replacement: (content) => {
+  replacement: (content: string): string => {
     // Just preserve shortcodes in markdown
     return content;
   }
@@ -119,12 +121,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Conversion not found' });
       }
 
+      const processedPosts = conversion.processedPosts || 0;
+      const totalPosts = conversion.totalPosts || 0;
+      
       res.json({
         status: conversion.status,
-        processed: conversion.processedPosts,
-        total: conversion.totalPosts,
-        percentage: conversion.totalPosts > 0 
-          ? Math.round((conversion.processedPosts / conversion.totalPosts) * 100) 
+        processed: processedPosts,
+        total: totalPosts,
+        percentage: totalPosts > 0 
+          ? Math.round((processedPosts / totalPosts) * 100) 
           : 0
       });
     } catch (error) {
@@ -181,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const post of posts) {
         let filename = '';
         
-        if (conversion.options.splitFiles) {
+        if ((conversion.options as any)?.splitFiles) {
           // Create a safe filename from the post title
           const safeTitle = post.slug.replace(/[^a-z0-9]/gi, '-').toLowerCase();
           filename = `${safeTitle}.md`;
@@ -191,13 +196,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Format the markdown content with metadata as frontmatter if requested
         let content = '';
-        if (conversion.options.includeMetadata) {
+        if ((conversion.options as any)?.includeMetadata) {
           content += '---\n';
           content += `title: "${post.title}"\n`;
           content += `date: "${post.date}"\n`;
           
           // Add other metadata from the metadata object
-          for (const [key, value] of Object.entries(post.metadata)) {
+          for (const [key, value] of Object.entries(post.metadata as Record<string, any>)) {
             if (typeof value === 'string') {
               content += `${key}: "${value}"\n`;
             } else if (Array.isArray(value)) {
@@ -400,12 +405,17 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
     let fileStream = createReadStream(filePath);
     
     // If file is gzipped, add gunzip transform
-    if (isGzipped) {
-      const gunzip = createGunzip();
-      await pipeline(fileStream, gunzip, parser);
-    } else {
-      await pipeline(fileStream, parser);
-    }
+    return new Promise<void>((resolve, reject) => {
+      parser.onend = () => resolve();
+      parser.onerror = (err) => reject(err);
+      
+      if (isGzipped) {
+        const gunzip = createGunzip();
+        fileStream.pipe(gunzip).pipe(parser as any);
+      } else {
+        fileStream.pipe(parser as any);
+      }
+    });
     
     // Update final progress
     await storage.updateConversionProgress(conversionId, processedCount, postCount);
