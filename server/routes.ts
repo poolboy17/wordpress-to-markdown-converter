@@ -288,7 +288,21 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
     };
     
     parser.onclosetag = async (tagName) => {
-      if (tagName === 'item' && inItem && currentPost && 
+      if (tagName === 'wp:postmeta' && inPostMeta && currentPost) {
+        inPostMeta = false;
+        // Add the meta field to the post's custom fields
+        if (currentMetaKey && currentMetaValue) {
+          currentPost.metadata.custom_fields[currentMetaKey] = currentMetaValue;
+        }
+      } else if (tagName === 'category' && inItem && currentPost && currentCategory) {
+        // Add the completed category to the post
+        if (currentCategory.domain === 'category') {
+          currentPost.metadata.categories.push(currentCategory.name);
+        } else if (currentCategory.domain === 'post_tag') {
+          currentPost.metadata.tags.push(currentCategory.name);
+        }
+        currentCategory = null;
+      } else if (tagName === 'item' && inItem && currentPost && 
           currentPost.title && 
           (currentPost.content || currentPost['content:encoded'])) {
         
@@ -308,10 +322,12 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
             slug: currentPost['wp:post_name'] || slugify(currentPost.title),
             metadata: {
               author: currentPost['dc:creator'] || '',
-              categories: currentPost.categories || [],
-              tags: currentPost['wp:post_tag'] || [],
+              categories: currentPost.metadata.categories,
+              tags: currentPost.metadata.tags,
               status: currentPost['wp:status'] || 'publish',
-              type: currentPost['wp:post_type'] || 'post'
+              type: currentPost['wp:post_type'] || 'post',
+              custom_fields: currentPost.metadata.custom_fields,
+              excerpt: currentPost['excerpt:encoded'] || ''
             }
           });
           
@@ -334,6 +350,17 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
     };
     
     parser.ontext = (text) => {
+      // Handle post meta text
+      if (inPostMeta) {
+        if (currentTag === 'wp:meta_key') {
+          currentMetaKey = text.trim();
+        } else if (currentTag === 'wp:meta_value') {
+          currentMetaValue = text;
+        }
+        return;
+      }
+      
+      // Handle regular text content
       if (inItem && currentPost && currentTag) {
         if (!currentPost[currentTag]) {
           currentPost[currentTag] = text;
@@ -346,11 +373,25 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
     };
     
     parser.oncdata = (text) => {
-      if (inItem && currentPost && currentTag === 'content:encoded') {
-        if (!currentPost[currentTag]) {
+      if (inPostMeta && currentTag === 'wp:meta_value') {
+        currentMetaValue = text;
+        return;
+      }
+      
+      if (inItem && currentPost) {
+        if (currentTag === 'content:encoded') {
+          if (!currentPost[currentTag]) {
+            currentPost[currentTag] = text;
+          } else {
+            currentPost[currentTag] += text;
+          }
+        } else if (currentTag === 'excerpt:encoded') {
           currentPost[currentTag] = text;
-        } else {
-          currentPost[currentTag] += text;
+        } else if (currentTag === 'dc:creator') {
+          currentPost[currentTag] = text;
+        } else if (currentTag === 'category' && currentCategory) {
+          // Set the category name from CDATA
+          currentCategory.name = text;
         }
       }
     };
