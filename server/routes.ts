@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
@@ -19,6 +19,7 @@ import {
   ContentQualityMetrics,
   FilteringOptions 
 } from "./utils/contentFiltering.js";
+import { AppError, catchAsync, ErrorTypes } from "./utils/errorHandler";
 
 // Setup file upload with multer
 const upload = multer({

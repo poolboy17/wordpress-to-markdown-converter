@@ -1,10 +1,8 @@
 /**
  * Client-side error handling utilities for the WordPress to Markdown converter
  */
+import { toast } from "@/hooks/use-toast";
 
-import { useToast } from '@/hooks/use-toast';
-
-// Error response from the API
 export interface ApiErrorResponse {
   status: string;
   message: string;
@@ -13,34 +11,23 @@ export interface ApiErrorResponse {
   stack?: string;
 }
 
-// Common error types with specific messages
 export const ErrorTypes = {
-  NETWORK: {
-    OFFLINE: 'You appear to be offline. Please check your internet connection.',
-    TIMEOUT: 'Request timed out. The server took too long to respond.',
-    SERVER_UNREACHABLE: 'Unable to reach the server. Please try again later.'
-  },
-  FILE: {
-    TOO_LARGE: 'The file is too large. Maximum size is 100MB.',
-    INVALID_FORMAT: 'Invalid file format. Only WordPress XML export files are supported (.xml or .xml.gz).',
-    NOT_FOUND: 'No file was uploaded. Please select a file.',
-    CORRUPTED: 'The file appears to be corrupted or invalid.'
-  },
-  CONVERSION: {
-    NO_POSTS: 'No posts found in the WordPress export file.',
-    PROCESSING_ERROR: 'Error processing the WordPress export file.',
-    TIMEOUT: 'The conversion process timed out. Try with a smaller file.'
-  },
-  SERVER: {
-    GENERIC: 'Something went wrong on the server. Please try again later.',
-    MAINTENANCE: 'The server is currently under maintenance. Please try again later.'
-  }
+  NETWORK: 'network_error',
+  API: 'api_error',
+  VALIDATION: 'validation_error',
+  AUTH: 'authentication_error',
+  NOT_FOUND: 'not_found_error',
+  SERVER: 'server_error',
+  PERMISSION: 'permission_error',
+  RATE_LIMIT: 'rate_limit_error',
+  UNKNOWN: 'unknown_error'
 };
 
 /**
  * Format and extract error message from different types of errors
  */
 export function getErrorMessage(error: any): string {
+  // Handle various error types
   if (typeof error === 'string') {
     return error;
   }
@@ -50,24 +37,17 @@ export function getErrorMessage(error: any): string {
   }
   
   if (error && typeof error === 'object') {
-    // API error response
+    // Common API error formats
     if (error.message) {
       return error.message;
     }
     
-    // Response error
+    if (error.error) {
+      return typeof error.error === 'string' ? error.error : JSON.stringify(error.error);
+    }
+    
     if (error.statusText) {
       return error.statusText;
-    }
-    
-    // Handle errors with nested details
-    if (error.response?.data?.message) {
-      return error.response.data.message;
-    }
-    
-    // For fetch API Response objects
-    if (error.status && error.status !== 200) {
-      return `Server error: ${error.status}`;
     }
   }
   
@@ -81,22 +61,54 @@ export async function handleApiResponse(response: Response): Promise<any> {
   if (!response.ok) {
     let errorData: ApiErrorResponse = {
       status: 'error',
-      message: response.statusText || 'Server error'
+      message: `HTTP error! Status: ${response.status}`
     };
     
     try {
-      // Attempt to parse error response as JSON
-      const data = await response.json();
-      errorData = { ...errorData, ...data };
+      // Try to parse error response
+      const jsonError = await response.json();
+      errorData = {
+        ...errorData,
+        ...jsonError
+      };
     } catch (e) {
-      // If we can't parse JSON, use status text
-      errorData.message = response.statusText || `Error ${response.status}`;
+      // If can't parse as JSON, use text
+      const textError = await response.text().catch(() => null);
+      if (textError) {
+        errorData.message = textError.substring(0, 200); // Limit length
+      }
     }
     
-    // Create an Error with the response data attached
+    // Detect specific error status codes
     const error = new Error(errorData.message);
-    (error as any).response = response;
-    (error as any).data = errorData;
+    (error as any).status = response.status;
+    (error as any).errorData = errorData;
+    
+    // Attach error type based on status code
+    switch (response.status) {
+      case 400:
+        (error as any).type = ErrorTypes.VALIDATION;
+        break;
+      case 401:
+      case 403:
+        (error as any).type = ErrorTypes.AUTH;
+        break;
+      case 404:
+        (error as any).type = ErrorTypes.NOT_FOUND;
+        break;
+      case 429:
+        (error as any).type = ErrorTypes.RATE_LIMIT;
+        break;
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        (error as any).type = ErrorTypes.SERVER;
+        break;
+      default:
+        (error as any).type = ErrorTypes.API;
+    }
+    
     throw error;
   }
   
@@ -107,46 +119,42 @@ export async function handleApiResponse(response: Response): Promise<any> {
  * Hook for showing error toast messages
  */
 export function useErrorToast() {
-  const { toast } = useToast();
-  
-  const showError = (title: string, message: string, duration = 5000) => {
-    toast({
-      title,
-      description: message,
-      variant: 'destructive',
-      duration
-    });
+  return {
+    showError: (error: any, title = 'Error') => {
+      toast({
+        title: title,
+        description: getErrorMessage(error),
+        variant: "destructive"
+      });
+    }
   };
-  
-  const showApiError = (error: any) => {
-    const message = getErrorMessage(error);
-    toast({
-      title: 'Error',
-      description: message,
-      variant: 'destructive'
-    });
-  };
-  
-  return { showError, showApiError };
 }
 
 /**
  * Helper to add error handling to fetch requests
  */
 export async function fetchWithErrorHandling(
-  url: string, 
+  url: string,
   options?: RequestInit
 ): Promise<any> {
   try {
+    if (!navigator.onLine) {
+      throw new Error('You appear to be offline. Please check your internet connection.');
+    }
+    
     const response = await fetch(url, options);
     return await handleApiResponse(response);
   } catch (error) {
-    // Handle network errors
-    if (!navigator.onLine) {
-      throw new Error(ErrorTypes.NETWORK.OFFLINE);
+    // Enhance error with additional context
+    if (error instanceof Error) {
+      console.error(`API request failed for ${url}:`, error);
+      
+      // You can add additional processing here if needed
+      if (error.message.includes('Failed to fetch')) {
+        error.message = 'Network error. Please check your connection and try again.';
+      }
     }
     
-    // Re-throw the error so it can be handled by the caller
     throw error;
   }
 }

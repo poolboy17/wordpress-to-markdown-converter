@@ -361,6 +361,38 @@ export default function Home() {
               status={progress.status}
             />
           )}
+          
+          {/* Show errors if they occur */}
+          {progressError && (
+            <div className="mb-6">
+              <ErrorMessage
+                title="Error tracking conversion progress"
+                message={progressError.message}
+                severity="error"
+                suggestions={[
+                  "The server might be experiencing high load",
+                  "Check your network connection",
+                  "Try refreshing the page"
+                ]}
+                onRetry={() => window.location.reload()}
+              />
+            </div>
+          )}
+          
+          {postsError && showResults && (
+            <div className="mb-6">
+              <ErrorMessage
+                title="Error loading converted posts"
+                message={postsError.message}
+                severity="error"
+                suggestions={[
+                  "The conversion might have encountered issues",
+                  "Try converting the file again"
+                ]}
+                onRetry={() => window.location.reload()}
+              />
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3">

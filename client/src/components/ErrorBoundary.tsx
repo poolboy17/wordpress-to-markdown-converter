@@ -1,6 +1,5 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
+import { ErrorMessage } from './ErrorMessage';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -23,7 +22,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: ''
+      errorInfo: '',
     };
   }
 
@@ -32,15 +31,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return {
       hasError: true,
       error,
-      errorInfo: error.message
+      errorInfo: '',
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log the error to an error reporting service
-    console.error('Error caught by ErrorBoundary:', error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({
-      errorInfo: errorInfo.componentStack || error.message
+      errorInfo: errorInfo.componentStack || String(errorInfo),
     });
   }
 
@@ -48,48 +47,60 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: ''
+      errorInfo: '',
     });
+    // Optionally reload the page for a fresh start
+    // window.location.reload();
   };
 
   render() {
-    if (this.state.hasError) {
-      // Provide a custom fallback UI if provided, otherwise show the default error UI
-      if (this.props.fallback) {
-        return this.props.fallback;
+    const { hasError, error, errorInfo } = this.state;
+    const { children, fallback } = this.props;
+
+    if (hasError) {
+      // If a custom fallback is provided, use that
+      if (fallback) {
+        return fallback;
       }
 
-      // Default error UI
+      // Otherwise, use our default error UI
       return (
-        <div className="p-6 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 text-center">
-          <div className="mb-4 flex justify-center">
-            <AlertCircle className="h-12 w-12 text-red-500 dark:text-red-400" />
-          </div>
-          <h2 className="text-lg font-semibold text-red-700 dark:text-red-300 mb-2">
-            Something went wrong
-          </h2>
-          <p className="text-sm text-red-600 dark:text-red-300 mb-4">
-            {this.state.error?.message || 'An unexpected error occurred'}
-          </p>
-          {process.env.NODE_ENV === 'development' && (
-            <pre className="mt-2 p-2 bg-red-100 dark:bg-red-900/30 rounded text-xs text-left overflow-auto max-h-32 text-red-800 dark:text-red-200">
-              {this.state.errorInfo}
-            </pre>
-          )}
-          <div className="mt-4">
-            <Button 
-              onClick={this.handleReset} 
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
-            </Button>
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
+          <div className="w-full max-w-xl mx-auto">
+            <ErrorMessage
+              title="Something went wrong"
+              message={error?.message || 'An unexpected error occurred.'}
+              severity="error"
+              details={errorInfo}
+              suggestions={[
+                'Try refreshing the page',
+                'Clear your browser cache',
+                'If the problem persists, please contact support'
+              ]}
+              onRetry={this.handleReset}
+            />
+            
+            <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                Technical information
+              </h3>
+              
+              <div className="overflow-auto max-h-64 rounded bg-gray-50 dark:bg-gray-900 p-4">
+                <pre className="text-xs text-gray-800 dark:text-gray-300">{error?.stack}</pre>
+              </div>
+              
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Reload Application
+              </button>
+            </div>
           </div>
         </div>
       );
     }
 
-    // If there's no error, render children normally
-    return this.props.children;
+    return children;
   }
 }
