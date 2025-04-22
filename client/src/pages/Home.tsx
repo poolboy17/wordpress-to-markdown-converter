@@ -10,6 +10,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, RefreshCcw, Download, XCircle } from "lucide-react";
+import { fetchWithErrorHandling } from "@/lib/errorHandler";
+import { ErrorMessage } from "@/components/ErrorMessage";
 
 export default function Home() {
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
@@ -35,19 +37,63 @@ export default function Home() {
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const { toast } = useToast();
 
+  // State for error handling
+  const [progressError, setProgressError] = useState<Error | null>(null);
+  const [postsError, setPostsError] = useState<Error | null>(null);
+  
   // Query for progress updates when a conversion is in progress
   const { data: progress, isLoading: isLoadingProgress } = useQuery({
     queryKey: ['/api/conversions', conversionId, 'progress'],
     queryFn: async () => {
       if (!conversionId) return null;
-      const res = await fetch(`/api/conversions/${conversionId}/progress`);
-      if (!res.ok) throw new Error('Failed to fetch progress');
-      return res.json();
+      try {
+        setProgressError(null);
+        const response = await fetch(`/api/conversions/${conversionId}/progress`);
+        
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          let errorMessage = `Failed to fetch progress: ${response.status}`;
+          
+          try {
+            // Try to parse as JSON to get error message
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.message) {
+              errorMessage = errorJson.message;
+            }
+          } catch (e) {
+            // If parsing fails, use status text
+            errorMessage = response.statusText || errorMessage;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        const data = await response.json();
+        // Handle the new API response format
+        if (data.status === 'success' && data.data) {
+          return {
+            status: data.data.conversionStatus,
+            processed: data.data.processed,
+            total: data.data.total,
+            percentage: data.data.percentage
+          };
+        }
+        
+        return data; // Fallback for older API format
+      } catch (error) {
+        console.error('Error fetching progress:', error);
+        setProgressError(error instanceof Error ? error : new Error('Failed to fetch progress'));
+        throw error;
+      }
     },
     enabled: !!conversionId,
     refetchInterval: (data: any) => {
-      return data?.status === 'processing' ? 1000 : false;
-    }
+      // Also check for updated API format
+      const status = data?.status || data?.data?.conversionStatus;
+      return status === 'processing' ? 1000 : false;
+    },
+    retry: 3, // Retry 3 times before giving up
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000) // Exponential backoff
   });
 
   // Query for posts when conversion is complete
@@ -55,11 +101,48 @@ export default function Home() {
     queryKey: ['/api/conversions', conversionId, 'posts'],
     queryFn: async () => {
       if (!conversionId) return null;
-      const res = await fetch(`/api/conversions/${conversionId}/posts`);
-      if (!res.ok) throw new Error('Failed to fetch posts');
-      return res.json();
+      try {
+        setPostsError(null);
+        const response = await fetch(`/api/conversions/${conversionId}/posts`);
+        
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          let errorMessage = `Failed to fetch posts: ${response.status}`;
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.message) {
+              errorMessage = errorJson.message;
+            }
+          } catch (e) {
+            errorMessage = response.statusText || errorMessage;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        const data = await response.json();
+        // Handle the new API response format
+        if (data.status === 'success' && Array.isArray(data.data)) {
+          return data.data;
+        }
+        
+        // Check if it's the old API format (direct array)
+        if (Array.isArray(data)) {
+          return data;
+        }
+        
+        // If we get here, something unexpected happened
+        console.warn('Unexpected posts response format:', data);
+        return [];
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        setPostsError(error instanceof Error ? error : new Error('Failed to fetch posts'));
+        throw error;
+      }
     },
-    enabled: !!conversionId && progress?.status === 'completed'
+    enabled: !!conversionId && progress?.status === 'completed',
+    retry: 2
   });
 
   // Query for selected post details
@@ -67,9 +150,42 @@ export default function Home() {
     queryKey: ['/api/posts', selectedPostId],
     queryFn: async () => {
       if (!selectedPostId) return null;
-      const res = await fetch(`/api/posts/${selectedPostId}`);
-      if (!res.ok) throw new Error('Failed to fetch post');
-      return res.json();
+      
+      try {
+        const response = await fetch(`/api/posts/${selectedPostId}`);
+        
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          let errorMessage = `Failed to fetch post: ${response.status}`;
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.message) {
+              errorMessage = errorJson.message;
+            }
+          } catch (e) {
+            errorMessage = response.statusText || errorMessage;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        const data = await response.json();
+        // Handle the new API response format
+        if (data.status === 'success' && data.data) {
+          return data.data;
+        }
+        
+        return data; // Fallback for older API format
+      } catch (error) {
+        console.error('Error fetching post details:', error);
+        toast({
+          title: "Error loading post",
+          description: error instanceof Error ? error.message : 'Failed to load post details',
+          variant: "destructive"
+        });
+        throw error;
+      }
     },
     enabled: !!selectedPostId
   });
@@ -83,17 +199,54 @@ export default function Home() {
       formData.append('file', fileInfo as any);
       formData.append('options', JSON.stringify(options));
 
-      const response = await apiRequest('POST', '/api/upload', formData);
-      return response.json();
+      try {
+        const response = await apiRequest('POST', '/api/upload', formData);
+        
+        if (!response.ok) {
+          // Try to parse error response
+          const errorData = await response.json().catch(() => null);
+          if (errorData && errorData.message) {
+            throw new Error(errorData.message);
+          }
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (err: any) {
+        // Enhanced error handling
+        console.error('File upload error:', err);
+        
+        // Detect specific error types
+        if (!navigator.onLine) {
+          throw new Error('You appear to be offline. Please check your internet connection.');
+        }
+        
+        if (err.message?.includes('413') || err.message?.includes('too large')) {
+          throw new Error('File is too large. Maximum size is 100MB.');
+        }
+        
+        // Rethrow the error with a more user-friendly message if needed
+        throw new Error(err.message || 'Failed to upload file. Please try again.');
+      }
     },
     onSuccess: (data) => {
-      setConversionId(data.conversionId);
-      toast({
-        title: "Conversion started",
-        description: "Your file is being processed. This may take a few minutes for large files.",
-      });
+      if (data && data.conversionId) {
+        setConversionId(data.conversionId);
+        toast({
+          title: "Conversion started",
+          description: "Your file is being processed. This may take a few minutes for large files.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Unexpected response",
+          description: "Received an unexpected response from the server.",
+          variant: "destructive"
+        });
+      }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error starting conversion",
         description: error.message,

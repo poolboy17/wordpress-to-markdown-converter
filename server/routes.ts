@@ -146,75 +146,198 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Route to get conversion progress
-  app.get('/api/conversions/:id/progress', async (req, res) => {
+  app.get('/api/conversions/:id/progress', async (req, res, next) => {
     try {
       const conversionId = parseInt(req.params.id);
+      
+      // Check if ID is valid
+      if (isNaN(conversionId)) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Invalid conversion ID',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       const conversion = await storage.getConversion(conversionId);
 
       if (!conversion) {
-        return res.status(404).json({ message: 'Conversion not found' });
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Conversion not found',
+          timestamp: new Date().toISOString()
+        });
       }
 
       const processedPosts = conversion.processedPosts || 0;
       const totalPosts = conversion.totalPosts || 0;
       
       res.json({
-        status: conversion.status,
-        processed: processedPosts,
-        total: totalPosts,
-        percentage: totalPosts > 0 
-          ? Math.round((processedPosts / totalPosts) * 100) 
-          : 0
+        status: 'success',
+        data: {
+          conversionStatus: conversion.status,
+          processed: processedPosts,
+          total: totalPosts,
+          percentage: totalPosts > 0 
+            ? Math.round((processedPosts / totalPosts) * 100) 
+            : 0
+        },
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error getting conversion progress:', error);
-      res.status(500).json({ message: 'Failed to get conversion progress' });
+      next(error);
     }
   });
 
   // Route to get all posts for a conversion
-  app.get('/api/conversions/:id/posts', async (req, res) => {
+  app.get('/api/conversions/:id/posts', async (req, res, next) => {
     try {
       const conversionId = parseInt(req.params.id);
+      
+      // Check if ID is valid
+      if (isNaN(conversionId)) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Invalid conversion ID',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      const conversion = await storage.getConversion(conversionId);
+      
+      // Check if conversion exists
+      if (!conversion) {
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Conversion not found',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       const posts = await storage.getMarkdownPosts(conversionId);
 
-      res.json(posts);
+      // If conversion is complete but no posts found, it might indicate an issue
+      if (conversion.status === 'completed' && posts.length === 0) {
+        return res.status(200).json({
+          status: 'success',
+          data: [],
+          message: 'No posts were found or all posts were filtered out',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      res.json({
+        status: 'success',
+        data: posts,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error getting posts:', error);
-      res.status(500).json({ message: 'Failed to get posts' });
+      next(error);
     }
   });
 
   // Route to get a specific post
-  app.get('/api/posts/:id', async (req, res) => {
+  app.get('/api/posts/:id', async (req, res, next) => {
     try {
       const postId = parseInt(req.params.id);
+      
+      // Check if ID is valid
+      if (isNaN(postId)) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Invalid post ID',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       const post = await storage.getMarkdownPost(postId);
 
       if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Post not found',
+          timestamp: new Date().toISOString()
+        });
       }
 
-      res.json(post);
+      res.json({
+        status: 'success',
+        data: post,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error getting post:', error);
-      res.status(500).json({ message: 'Failed to get post' });
+      next(error);
     }
   });
 
   // Route to download all posts as a zip file
-  app.get('/api/conversions/:id/download', async (req, res) => {
+  app.get('/api/conversions/:id/download', async (req, res, next) => {
     try {
       const conversionId = parseInt(req.params.id);
+      
+      // Check if ID is valid
+      if (isNaN(conversionId)) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Invalid conversion ID',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       const conversion = await storage.getConversion(conversionId);
-      const posts = await storage.getMarkdownPosts(conversionId);
-
+      
+      // Check if conversion exists
       if (!conversion) {
-        return res.status(404).json({ message: 'Conversion not found' });
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Conversion not found',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Check if conversion is completed
+      if (conversion.status !== 'completed') {
+        return res.status(400).json({
+          status: 'fail',
+          message: `Cannot download: conversion is in '${conversion.status}' status`,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      const posts = await storage.getMarkdownPosts(conversionId);
+      
+      // Check if there are any posts to download
+      if (!posts || posts.length === 0) {
+        return res.status(404).json({
+          status: 'fail',
+          message: 'No posts found for this conversion',
+          timestamp: new Date().toISOString()
+        });
       }
 
       // Create a zip file
       const zip = new JSZip();
+      
+      // Add a README file with information about the conversion
+      const readmeContent = `# WordPress to Markdown Conversion
+      
+Converted from: ${conversion.filename}
+Date: ${new Date(conversion.createdAt).toLocaleString()}
+Posts: ${posts.length}
+
+## Conversion Options
+${Object.entries(conversion.options as Record<string, any>)
+  .map(([key, value]) => `- ${key}: ${value}`)
+  .join('\n')}
+
+---
+Generated by WordPress to Markdown Converter
+`;
+      
+      zip.file('README.md', readmeContent);
 
       // Add each post to the zip
       for (const post of posts) {
@@ -251,18 +374,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         zip.file(filename, content);
       }
 
-      // Generate the zip file
-      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+      try {
+        // Generate the zip file
+        const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
 
-      // Set headers for download
-      res.setHeader('Content-Disposition', `attachment; filename="${conversion.filename.replace('.xml', '')}.md.zip"`);
-      res.setHeader('Content-Type', 'application/zip');
-      
-      // Send the zip file
-      res.send(zipBuffer);
+        // Set headers for download
+        const safeFilename = conversion.filename.replace(/[^a-z0-9\.]/gi, '-').toLowerCase().replace('.xml', '');
+        res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}.md.zip"`);
+        res.setHeader('Content-Type', 'application/zip');
+        
+        // Send the zip file
+        res.send(zipBuffer);
+      } catch (zipError) {
+        console.error('Error generating zip file:', zipError);
+        return res.status(500).json({
+          status: 'error',
+          message: 'Failed to generate zip file',
+          timestamp: new Date().toISOString()
+        });
+      }
     } catch (error) {
       console.error('Error downloading posts:', error);
-      res.status(500).json({ message: 'Failed to download posts' });
+      next(error);
     }
   });
 
