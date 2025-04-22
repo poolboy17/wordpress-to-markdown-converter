@@ -1,6 +1,8 @@
 import { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { FileInfo } from "@shared/schema";
-import { Upload } from "lucide-react";
+import { Upload, FileType, FileWarning, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
   onFileSelected: (fileInfo: FileInfo | null) => void;
@@ -8,7 +10,9 @@ interface FileUploadProps {
 
 export function FileUpload({ onFileSelected }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
@@ -59,9 +63,20 @@ export function FileUpload({ onFileSelected }: FileUploadProps) {
   const processFile = (file: File) => {
     // Check if the file is an XML file
     if (!file.name.toLowerCase().endsWith('.xml') && !file.name.toLowerCase().endsWith('.xml.gz')) {
-      alert('Please upload a WordPress XML export file (.xml or .xml.gz)');
+      toast({
+        title: "Invalid file format",
+        description: "Please upload a WordPress XML export file (.xml or .xml.gz)",
+        variant: "destructive"
+      });
       return;
     }
+
+    // Show a success toast
+    toast({
+      title: "File added successfully",
+      description: `"${file.name}" has been added for conversion.`,
+      variant: "default"
+    });
 
     const fileInfo: FileInfo = {
       name: file.name,
@@ -75,16 +90,19 @@ export function FileUpload({ onFileSelected }: FileUploadProps) {
 
   return (
     <div 
-      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors duration-200 mb-6 ${
-        isDragging 
-          ? 'border-primary bg-primary/5' 
-          : 'border-gray-300 dark:border-gray-700 hover:border-primary dark:hover:border-primary'
-      }`}
+      className={cn(
+        "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-300 mb-6",
+        isDragging && "border-primary bg-primary/10 scale-[1.02] shadow-lg",
+        isHovering && "border-primary/70 bg-primary/5",
+        !isDragging && !isHovering && "border-gray-300 dark:border-gray-700 hover:border-primary dark:hover:border-primary"
+      )}
       onClick={triggerFileInput}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleFileDrop}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
       <input 
         type="file" 
@@ -93,17 +111,48 @@ export function FileUpload({ onFileSelected }: FileUploadProps) {
         accept=".xml,.xml.gz" 
         onChange={handleFileSelect}
       />
-      <div className="space-y-3">
-        <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-        <h3 className="text-gray-900 dark:text-gray-100 font-medium">
-          Drag & drop your XML file here
-        </h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
-          or <span className="text-primary font-medium">browse</span> to select a file
-        </p>
-        <p className="text-gray-400 dark:text-gray-500 text-xs">
-          Supports WordPress XML export files
-        </p>
+      <div className="space-y-5">
+        <div 
+          className={cn(
+            "mx-auto size-16 flex items-center justify-center rounded-full transition-all", 
+            isDragging ? "bg-primary/20 text-primary" : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
+          )}
+        >
+          <Upload className="h-8 w-8" />
+        </div>
+        
+        <div className="space-y-2">
+          <h3 className={cn(
+            "text-lg font-medium transition-colors",
+            isDragging ? "text-primary" : "text-gray-900 dark:text-gray-100"
+          )}>
+            {isDragging ? "Drop your file here" : "Drag & drop your XML file here"}
+          </h3>
+          
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            or <span className={cn(
+              "font-medium transition-colors",
+              isDragging || isHovering ? "text-primary underline" : "text-primary"
+            )}>browse</span> to select a file
+          </p>
+        </div>
+        
+        <div className="flex justify-center space-x-3 pt-2">
+          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+            <FileType className="h-3.5 w-3.5 mr-1" />
+            <span>.xml files</span>
+          </div>
+          
+          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+            <FileWarning className="h-3.5 w-3.5 mr-1" />
+            <span>Max size 100MB</span>
+          </div>
+          
+          <div className="flex items-center text-xs text-green-600 dark:text-green-400">
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+            <span>Supports WordPress exports</span>
+          </div>
+        </div>
       </div>
     </div>
   );
