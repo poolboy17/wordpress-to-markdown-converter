@@ -45,7 +45,7 @@ export default function Home() {
       return res.json();
     },
     enabled: !!conversionId,
-    refetchInterval: (data) => {
+    refetchInterval: (data: any) => {
       return data?.status === 'processing' ? 1000 : false;
     }
   });

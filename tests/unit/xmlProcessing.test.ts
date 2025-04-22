@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { parseStringPromise } from 'xml2js';
-import { FilteringOptions } from '../../server/utils/contentFiltering';
-import { shouldProcessPost } from '../../server/utils/contentFiltering';
+import { FilteringOptions, shouldProcessPost } from '../../server/utils/contentFiltering.js';
 
 describe('WordPress XML Content Filtering Integration', () => {
   let xmlData: any;

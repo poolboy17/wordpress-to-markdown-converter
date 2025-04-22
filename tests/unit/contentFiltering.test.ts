@@ -7,7 +7,7 @@ import {
   analyzeContentQuality,
   shouldProcessPost,
   FilteringOptions
-} from '../../server/utils/contentFiltering';
+} from '../../server/utils/contentFiltering.js';
 
 // Define sample filtering options for tests
 const baseFilteringOptions: FilteringOptions = {

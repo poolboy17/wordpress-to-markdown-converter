@@ -18,7 +18,7 @@ import {
   shouldProcessPost, 
   ContentQualityMetrics,
   FilteringOptions 
-} from "./utils/contentFiltering";
+} from "./utils/contentFiltering.js";
 
 // Setup file upload with multer
 const upload = multer({
