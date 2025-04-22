@@ -82,14 +82,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // prefix all routes with /api
 
   // Route to upload a WordPress XML file
-  app.post('/api/upload', upload.single('file'), async (req, res) => {
+  app.post('/api/upload', upload.single('file'), async (req, res, next) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
+        return res.status(400).json({ 
+          status: 'fail',
+          message: 'No file uploaded',
+          timestamp: new Date().toISOString()
+        });
       }
 
       // Parse options
-      const options = conversionOptionsSchema.parse(req.body.options ? JSON.parse(req.body.options) : {});
+      let options;
+      try {
+        options = conversionOptionsSchema.parse(req.body.options ? JSON.parse(req.body.options) : {});
+      } catch (parseError: any) {
+        console.error('Error parsing conversion options:', parseError);
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Invalid conversion options',
+          data: { error: parseError.message },
+          timestamp: new Date().toISOString()
+        });
+      }
 
       // Create a new conversion record
       const conversion = await storage.createConversion({
@@ -102,17 +117,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Return the conversion ID immediately so the client can start polling for progress
-      res.status(201).json({ conversionId: conversion.id });
+      res.status(201).json({ 
+        status: 'success',
+        conversionId: conversion.id, 
+        message: 'Conversion started successfully',
+        timestamp: new Date().toISOString()
+      });
 
       // Start processing the file in the background
       processXmlFile(req.file.path, conversion.id, options)
         .catch(err => {
           console.error('Error processing XML file:', err);
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
           storage.updateConversionStatus(conversion.id, 'failed');
+          
+          // Add error details to the conversion record
+          // Note: In a real implementation, you might want to add an 'errorDetails' field to the Conversion type
+          // This is a simplified approach for demonstration purposes
+          storage.updateConversionProgress(conversion.id, 0, 0)
+            .catch(updateErr => {
+              console.error('Error updating conversion after failure:', updateErr);
+            });
         });
     } catch (error) {
       console.error('Error uploading file:', error);
-      res.status(500).json({ message: 'Failed to upload file' });
+      next(error); // Pass to global error handler
     }
   });
 

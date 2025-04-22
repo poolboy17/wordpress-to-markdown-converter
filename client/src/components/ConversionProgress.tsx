@@ -85,7 +85,7 @@ export function ConversionProgress({
       
       <Progress 
         value={percentage} 
-        className={cn("h-3 mb-3", progressAnimation)} 
+        className={cn("h-3 mb-3", progressAnimation)}
         indicatorClassName={progressColor}
       />
       
