@@ -16,6 +16,10 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
+// Calculate __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // The version file
 const VERSION_FILE = path.join(__dirname, '..', 'version.json');
 

@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+import { execSync } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+// Calculate __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Settings
 const CHECK_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
-const VERSION_MANAGER = path.join(__dirname, 'version-manager.js');
+const VERSION_MANAGER = path.join(__dirname, 'commit-version.js');
 const GIT_CONFIG_FILE = path.join(__dirname, '..', '.git', 'config');
 
 // Set up Git configuration with token if provided

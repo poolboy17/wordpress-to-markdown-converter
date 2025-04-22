@@ -10,7 +10,13 @@
  *   repo-url: The GitHub repository URL (e.g., https://github.com/username/repo.git)
  */
 
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+// Calculate __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Get the repository URL from command line arguments
 const args = process.argv.slice(2);
