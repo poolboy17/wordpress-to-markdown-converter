@@ -241,6 +241,10 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
     let currentTag = '';
     let currentContent = '';
     let inItem = false;
+    let inPostMeta = false;
+    let currentMetaKey = '';
+    let currentMetaValue = '';
+    let currentCategory: any = null;
     let postCount = 0;
     let processedCount = 0;
     
@@ -265,8 +269,20 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
           metadata: {
             author: '',
             categories: [],
-            tags: []
+            tags: [],
+            custom_fields: {}
           }
+        };
+      } else if (node.name === 'wp:postmeta') {
+        inPostMeta = true;
+        currentMetaKey = '';
+        currentMetaValue = '';
+      } else if (node.name === 'category' && inItem) {
+        // Initialize a new category with attributes
+        currentCategory = {
+          domain: node.attributes.domain,
+          nicename: node.attributes.nicename,
+          name: ''
         };
       }
     };
