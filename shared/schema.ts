@@ -30,6 +30,13 @@ export const conversionOptionsSchema = z.object({
   processShortcodes: z.boolean().default(true),
   includeMetadata: z.boolean().default(true),
   splitFiles: z.boolean().default(true),
+  // Content filtering options
+  filterLowValueContent: z.boolean().default(false),
+  minWordCount: z.number().int().min(0).default(700),
+  minTextToHtmlRatio: z.number().min(0).max(1).default(0.5),
+  excludeEmbedOnlyPosts: z.boolean().default(true),
+  excludeDraftPosts: z.boolean().default(true),
+  excludeNoImages: z.boolean().default(false),
 });
 
 export const insertConversionSchema = createInsertSchema(conversions)

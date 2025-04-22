@@ -314,18 +314,34 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
         // Get the content from the appropriate field
         const htmlContent = currentPost['content:encoded'] || currentPost.content;
         
-        // Convert HTML to Markdown
-        let markdownContent = turndownService.turndown(htmlContent);
+        // Check content quality if filtering is enabled
+        let shouldProcess = true;
+        let qualityMetrics: ContentQualityMetrics | null = null;
         
-        // Create the markdown post
-        try {
-          await storage.createMarkdownPost({
-            conversionId,
-            title: currentPost.title,
-            content: markdownContent,
-            date: currentPost.pubDate || currentPost['wp:post_date'] || new Date().toISOString(),
-            slug: currentPost['wp:post_name'] || slugify(currentPost.title),
-            metadata: {
+        if ((options as any).filterLowValueContent) {
+          qualityMetrics = analyzeContentQuality(htmlContent, options);
+          
+          // Skip low-value content
+          if (qualityMetrics.isLowValue) {
+            shouldProcess = false;
+            console.log(`Skipping low-value content: "${currentPost.title}" (words: ${qualityMetrics.wordCount}, ratio: ${qualityMetrics.textToHtmlRatio.toFixed(2)})`);
+          }
+          
+          // Skip draft posts if option is enabled
+          if ((options as any).excludeDraftPosts && currentPost['wp:status'] === 'draft') {
+            shouldProcess = false;
+            console.log(`Skipping draft post: "${currentPost.title}"`);
+          }
+        }
+        
+        if (shouldProcess) {
+          // Convert HTML to Markdown
+          let markdownContent = turndownService.turndown(htmlContent);
+          
+          // Create the markdown post
+          try {
+            // Add quality metrics to the metadata if available
+            const contentMetadata: any = {
               author: currentPost['dc:creator'] || '',
               categories: currentPost.metadata.categories,
               tags: currentPost.metadata.tags,
@@ -333,17 +349,36 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
               type: currentPost['wp:post_type'] || 'post',
               custom_fields: currentPost.metadata.custom_fields,
               excerpt: currentPost['excerpt:encoded'] || ''
+            };
+            
+            // Add quality metrics if available
+            if (qualityMetrics) {
+              contentMetadata.contentQuality = {
+                wordCount: qualityMetrics.wordCount,
+                textToHtmlRatio: qualityMetrics.textToHtmlRatio,
+                hasImages: qualityMetrics.hasImages,
+                hasEmbeds: qualityMetrics.hasEmbeds
+              };
             }
-          });
-          
-          processedCount++;
-          
-          // Update progress every 5 posts
-          if (processedCount % 5 === 0) {
-            await storage.updateConversionProgress(conversionId, processedCount, postCount);
+            
+            await storage.createMarkdownPost({
+              conversionId,
+              title: currentPost.title,
+              content: markdownContent,
+              date: currentPost.pubDate || currentPost['wp:post_date'] || new Date().toISOString(),
+              slug: currentPost['wp:post_name'] || slugify(currentPost.title),
+              metadata: contentMetadata
+            });
+          } catch (err) {
+            console.error('Error creating markdown post:', err);
           }
-        } catch (err) {
-          console.error('Error creating markdown post:', err);
+        }
+        
+        processedCount++;
+        
+        // Update progress every 5 posts
+        if (processedCount % 5 === 0) {
+          await storage.updateConversionProgress(conversionId, processedCount, postCount);
         }
         
         inItem = false;
@@ -477,4 +512,79 @@ function slugify(text: string): string {
     .replace(/&/g, '-and-')   // Replace & with 'and'
     .replace(/[^\w\-]+/g, '') // Remove all non-word chars
     .replace(/\-\-+/g, '-');  // Replace multiple - with single -
+}
+
+// Content quality analysis utilities
+interface ContentQualityMetrics {
+  wordCount: number;
+  textToHtmlRatio: number;
+  hasImages: boolean;
+  hasEmbeds: boolean;
+  isLowValue: boolean;
+}
+
+/**
+ * Count words in a string
+ */
+function countWords(text: string): number {
+  // Remove HTML tags first
+  const cleanText = text.replace(/<[^>]*>/g, ' ');
+  // Replace non-word characters with spaces
+  const words = cleanText.replace(/[^\w\s]/g, ' ').trim().split(/\s+/);
+  return words.filter(word => word.length > 0).length;
+}
+
+/**
+ * Calculate text to HTML ratio
+ * A higher ratio means more actual content vs. HTML markup
+ */
+function calculateTextToHtmlRatio(html: string): number {
+  if (!html || html.length === 0) return 0;
+  
+  const textContent = html.replace(/<[^>]*>/g, '').trim();
+  return textContent.length / html.length;
+}
+
+/**
+ * Check if content has images (img tags)
+ */
+function hasImages(html: string): boolean {
+  return /<img[^>]*>/i.test(html);
+}
+
+/**
+ * Check if content seems to be primarily embeds (iframes, embeds, etc.)
+ */
+function isEmbedHeavy(html: string): boolean {
+  const embedRegex = /<(iframe|embed|object)[^>]*>/gi;
+  const embedMatches = html.match(embedRegex) || [];
+  const contentLength = html.length;
+  
+  // If the content is short and has embeds
+  return embedMatches.length > 0 && contentLength < 1000;
+}
+
+/**
+ * Analyze content quality based on various metrics
+ */
+function analyzeContentQuality(html: string, options: any): ContentQualityMetrics {
+  const wordCount = countWords(html);
+  const textToHtmlRatio = calculateTextToHtmlRatio(html);
+  const contentHasImages = hasImages(html);
+  const isEmbedContent = isEmbedHeavy(html);
+  
+  // Determine if this is low-value content based on options
+  const isLowValue = 
+    (wordCount < options.minWordCount) || 
+    (textToHtmlRatio < options.minTextToHtmlRatio) ||
+    (options.excludeEmbedOnlyPosts && isEmbedContent) ||
+    (options.excludeNoImages && !contentHasImages);
+  
+  return {
+    wordCount,
+    textToHtmlRatio,
+    hasImages: contentHasImages,
+    hasEmbeds: isEmbedContent,
+    isLowValue
+  };
 }
