@@ -444,11 +444,30 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
               };
             }
             
+            // Parse and validate date before using it
+            let postDate;
+            try {
+              if (currentPost.pubDate) {
+                // Try to parse the pubDate
+                postDate = new Date(currentPost.pubDate).toISOString();
+              } else if (currentPost['wp:post_date']) {
+                // Try to parse the wp:post_date
+                postDate = new Date(currentPost['wp:post_date']).toISOString();
+              } else {
+                // Fallback to current date
+                postDate = new Date().toISOString();
+              }
+            } catch (dateError) {
+              console.warn('Date parsing error:', dateError);
+              // Default to current date if parsing fails
+              postDate = new Date().toISOString();
+            }
+
             await storage.createMarkdownPost({
               conversionId,
               title: currentPost.title,
               content: markdownContent,
-              date: currentPost.pubDate || currentPost['wp:post_date'] || new Date().toISOString(),
+              date: postDate,
               slug: currentPost['wp:post_name'] || slugify(currentPost.title),
               metadata: contentMetadata
             });
