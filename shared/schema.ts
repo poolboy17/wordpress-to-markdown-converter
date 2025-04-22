@@ -37,6 +37,11 @@ export const conversionOptionsSchema = z.object({
   excludeEmbedOnlyPosts: z.boolean().default(true),
   excludeDraftPosts: z.boolean().default(true),
   excludeNoImages: z.boolean().default(false),
+  // System-generated pages filtering
+  excludeTagPages: z.boolean().default(true),
+  excludeArchivePages: z.boolean().default(true),
+  excludeAuthorPages: z.boolean().default(true),
+  excludePaginatedPages: z.boolean().default(true),
 });
 
 export const insertConversionSchema = createInsertSchema(conversions)

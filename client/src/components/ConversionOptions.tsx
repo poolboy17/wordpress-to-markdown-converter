@@ -207,7 +207,7 @@ export function ConversionOptions({ options, onChange }: ConversionOptionsProps)
             />
           </div>
           
-          {/* Additional Filtering Options */}
+          {/* Content-Based Filtering Options */}
           <div className="pt-2 space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -251,6 +251,71 @@ export function ConversionOptions({ options, onChange }: ConversionOptionsProps)
                 className="text-sm text-gray-700 dark:text-gray-300"
               >
                 Exclude posts without images
+              </Label>
+            </div>
+          </div>
+          
+          {/* System Page Filtering Options */}
+          <div className="pt-4 space-y-2">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 pb-1">System-Generated Pages</h4>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="exclude-tag-pages" 
+                checked={options.excludeTagPages}
+                onCheckedChange={() => handleOptionChange('excludeTagPages')}
+                disabled={!options.filterLowValueContent}
+              />
+              <Label 
+                htmlFor="exclude-tag-pages" 
+                className="text-sm text-gray-700 dark:text-gray-300"
+              >
+                Exclude tag & category pages
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="exclude-archive-pages" 
+                checked={options.excludeArchivePages}
+                onCheckedChange={() => handleOptionChange('excludeArchivePages')}
+                disabled={!options.filterLowValueContent}
+              />
+              <Label 
+                htmlFor="exclude-archive-pages" 
+                className="text-sm text-gray-700 dark:text-gray-300"
+              >
+                Exclude archive pages
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="exclude-author-pages" 
+                checked={options.excludeAuthorPages}
+                onCheckedChange={() => handleOptionChange('excludeAuthorPages')}
+                disabled={!options.filterLowValueContent}
+              />
+              <Label 
+                htmlFor="exclude-author-pages" 
+                className="text-sm text-gray-700 dark:text-gray-300"
+              >
+                Exclude author pages
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="exclude-paginated-pages" 
+                checked={options.excludePaginatedPages}
+                onCheckedChange={() => handleOptionChange('excludePaginatedPages')}
+                disabled={!options.filterLowValueContent}
+              />
+              <Label 
+                htmlFor="exclude-paginated-pages" 
+                className="text-sm text-gray-700 dark:text-gray-300"
+              >
+                Exclude paginated duplicates
               </Label>
             </div>
           </div>

@@ -319,16 +319,24 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
         let qualityMetrics: ContentQualityMetrics | null = null;
         
         if ((options as any).filterLowValueContent) {
-          qualityMetrics = analyzeContentQuality(htmlContent, options);
+          qualityMetrics = analyzeContentQuality(htmlContent, options, currentPost);
           
           // Skip low-value content
           if (qualityMetrics.isLowValue) {
             shouldProcess = false;
-            console.log(`Skipping low-value content: "${currentPost.title}" (words: ${qualityMetrics.wordCount}, ratio: ${qualityMetrics.textToHtmlRatio.toFixed(2)})`);
+            
+            // Check if this is a system-generated page
+            const systemPageCheck = isSystemGeneratedPage(currentPost);
+            
+            if (systemPageCheck.isSystemPage) {
+              console.log(`Skipping system-generated ${systemPageCheck.pageType} page: "${currentPost.title}"`);
+            } else {
+              console.log(`Skipping low-value content: "${currentPost.title}" (words: ${qualityMetrics.wordCount}, ratio: ${qualityMetrics.textToHtmlRatio.toFixed(2)})`);
+            }
           }
           
           // Skip draft posts if option is enabled
-          if ((options as any).excludeDraftPosts && currentPost['wp:status'] === 'draft') {
+          if (!qualityMetrics.isLowValue && (options as any).excludeDraftPosts && currentPost['wp:status'] === 'draft') {
             shouldProcess = false;
             console.log(`Skipping draft post: "${currentPost.title}"`);
           }
@@ -567,18 +575,83 @@ function isEmbedHeavy(html: string): boolean {
 /**
  * Analyze content quality based on various metrics
  */
-function analyzeContentQuality(html: string, options: any): ContentQualityMetrics {
+/**
+ * Check if the post is a system-generated page like tag, archive, author, or paginated page
+ */
+function isSystemGeneratedPage(post: any): { isSystemPage: boolean; pageType: string | null } {
+  const postType = post['wp:post_type'] || '';
+  const postName = post['wp:post_name'] || '';
+  const postTitle = post.title || '';
+  const postLink = post.link || '';
+  
+  // Check for tag or category page
+  if (postType === 'page' && (
+      postTitle.toLowerCase().includes('tag:') || 
+      postTitle.toLowerCase().includes('category:') ||
+      postName.includes('tag-') || 
+      postName.includes('category-'))) {
+    return { isSystemPage: true, pageType: 'tag' };
+  }
+  
+  // Check for archive page
+  if (postType === 'page' && (
+      postTitle.toLowerCase().includes('archive') || 
+      postName.includes('archive') || 
+      postLink.includes('/20') && (postLink.includes('/0') || postLink.includes('/1')))) {
+    return { isSystemPage: true, pageType: 'archive' };
+  }
+  
+  // Check for author page
+  if (postType === 'page' && (
+      postTitle.toLowerCase().includes('author:') || 
+      postName.includes('author-') || 
+      postLink.includes('/author/'))) {
+    return { isSystemPage: true, pageType: 'author' };
+  }
+  
+  // Check for paginated duplicate
+  if (postLink.includes('/page/') || 
+      postName.includes('-page-') || 
+      postName.match(/-\d+$/) || 
+      postTitle.match(/Page \d+/i)) {
+    return { isSystemPage: true, pageType: 'paginated' };
+  }
+  
+  return { isSystemPage: false, pageType: null };
+}
+
+function analyzeContentQuality(html: string, options: any, post: any = null): ContentQualityMetrics {
   const wordCount = countWords(html);
   const textToHtmlRatio = calculateTextToHtmlRatio(html);
   const contentHasImages = hasImages(html);
   const isEmbedContent = isEmbedHeavy(html);
   
+  // Check if this is a system-generated page
+  let isSystemPage = false;
+  let pageType = null;
+  
+  if (post) {
+    const systemPageCheck = isSystemGeneratedPage(post);
+    isSystemPage = systemPageCheck.isSystemPage;
+    pageType = systemPageCheck.pageType;
+  }
+  
   // Determine if this is low-value content based on options
-  const isLowValue = 
+  let isLowValue = 
     (wordCount < options.minWordCount) || 
     (textToHtmlRatio < options.minTextToHtmlRatio) ||
     (options.excludeEmbedOnlyPosts && isEmbedContent) ||
     (options.excludeNoImages && !contentHasImages);
+  
+  // Add system page checks
+  if (isSystemPage && (
+      (pageType === 'tag' && options.excludeTagPages) ||
+      (pageType === 'archive' && options.excludeArchivePages) ||
+      (pageType === 'author' && options.excludeAuthorPages) ||
+      (pageType === 'paginated' && options.excludePaginatedPages)
+     )) {
+    isLowValue = true;
+  }
   
   return {
     wordCount,
