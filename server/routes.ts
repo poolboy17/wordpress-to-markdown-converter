@@ -405,7 +405,7 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
     let fileStream = createReadStream(filePath);
     
     // If file is gzipped, add gunzip transform
-    return new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       parser.onend = () => resolve();
       parser.onerror = (err) => reject(err);
       
@@ -460,9 +460,9 @@ async function countPosts(filePath: string, isGzipped: boolean): Promise<number>
     
     if (isGzipped) {
       const gunzip = createGunzip();
-      fileStream.pipe(gunzip).pipe(parser);
+      fileStream.pipe(gunzip).pipe(parser as any);
     } else {
-      fileStream.pipe(parser);
+      fileStream.pipe(parser as any);
     }
   });
 }
