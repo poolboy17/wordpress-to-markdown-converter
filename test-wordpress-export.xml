@@ -66,11 +66,11 @@
                 <wp:post_type>post</wp:post_type>
                 <wp:postmeta>
                         <wp:meta_key>_featured_image</wp:meta_key>
-                        <wp:meta_value><![CDATA[https://example.com/wp-content/uploads/2025/04/sample-image-1.jpg]]></wp:meta_value>
+                        <wp:meta_value>https://example.com/wp-content/uploads/2025/04/sample-image-1.jpg</wp:meta_value>
                 </wp:postmeta>
                 <wp:postmeta>
                         <wp:meta_key>_custom_field</wp:meta_key>
-                        <wp:meta_value><![CDATA[Custom value goes here]]></wp:meta_value>
+                        <wp:meta_value>Custom value goes here</wp:meta_value>
                 </wp:postmeta>
                 <category domain="category" nicename="test-category"><![CDATA[Test Category]]></category>
                 <category domain="category" nicename="important-stuff"><![CDATA[Important Stuff]]></category>

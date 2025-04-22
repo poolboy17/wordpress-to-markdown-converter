@@ -137,7 +137,19 @@ async function runTest() {
     };
     
     parser.onclosetag = async (tagName) => {
-      if (tagName === 'item' && inItem && currentPost && 
+      if (tagName === 'wp:postmeta' && inPostMeta && currentPost) {
+        inPostMeta = false;
+        // Add the meta field to the post's custom fields
+        if (currentMetaKey && currentMetaValue) {
+          currentPost.metadata.custom_fields[currentMetaKey] = currentMetaValue;
+        }
+      } else if (tagName === 'wp:meta_key' && inPostMeta) {
+        currentMetaKey = currentContent.trim();
+        console.log("Meta key:", currentMetaKey);
+      } else if (tagName === 'wp:meta_value' && inPostMeta) {
+        currentMetaValue = currentContent;
+        console.log("Meta value:", currentMetaValue);
+      } else if (tagName === 'item' && inItem && currentPost && 
           currentPost.title && 
           (currentPost.content || currentPost['content:encoded'])) {
         
@@ -151,6 +163,28 @@ async function runTest() {
         console.log(`Original HTML length: ${htmlContent.length}`);
         console.log(`Converted Markdown length: ${markdownContent.length}`);
         
+        // Process categories and tags
+        const categories = [];
+        const tags = [];
+        const custom_fields = currentPost.metadata.custom_fields || {};
+        
+        // Debug the categories structure
+        console.log("Categories object:", JSON.stringify(currentPost.categories, null, 2));
+        
+        if (currentPost.categories && Array.isArray(currentPost.categories)) {
+          // Remove the _lastItem property which is not an array item
+          const filteredCategories = currentPost.categories.filter(item => 
+            typeof item === 'object' && item !== null && !('_lastItem' in item));
+          
+          filteredCategories.forEach(cat => {
+            if (cat._domain === 'category') {
+              categories.push(cat._cdata || cat);
+            } else if (cat._domain === 'post_tag') {
+              tags.push(cat._cdata || cat);
+            }
+          });
+        }
+        
         // Create the markdown post
         try {
           const post = await storage.createMarkdownPost({
@@ -161,10 +195,12 @@ async function runTest() {
             slug: currentPost['wp:post_name'] || slugify(currentPost.title),
             metadata: {
               author: currentPost['dc:creator'] || '',
-              categories: currentPost.categories || [],
-              tags: currentPost['wp:post_tag'] || [],
+              categories: categories.length ? categories : (currentPost.categories || []),
+              tags: tags.length ? tags : (currentPost['wp:post_tag'] || []),
               status: currentPost['wp:status'] || 'publish',
-              type: currentPost['wp:post_type'] || 'post'
+              type: currentPost['wp:post_type'] || 'post',
+              custom_fields: currentPost.metadata.custom_fields || {},
+              excerpt: currentPost['excerpt:encoded'] || ''
             }
           });
           
@@ -189,14 +225,48 @@ async function runTest() {
       currentContent = '';
     };
     
+    let currentCategoryDomain = '';
+    let currentCategoryNicename = '';
+    
+    parser.onattribute = (attr) => {
+      if (inItem && currentTag === 'category') {
+        // We'll store these temporarily until we get the CDATA content
+        if (attr.name === 'domain') {
+          currentCategoryDomain = attr.value;
+        } else if (attr.name === 'nicename') {
+          currentCategoryNicename = attr.value;
+        }
+      }
+    };
+    
     parser.ontext = (text) => {
+      // Update current content for later use
+      currentContent = text;
+      
+      if (inPostMeta) {
+        if (currentTag === 'wp:meta_key') {
+          currentMetaKey = text;
+        } else if (currentTag === 'wp:meta_value') {
+          currentMetaValue = text;
+        }
+        return;
+      }
+      
       if (inItem && currentPost && currentTag) {
         if (currentTag === 'category') {
           // Handle categories separately as they can appear multiple times
           if (!currentPost.categories) {
             currentPost.categories = [];
           }
-          currentPost.categories.push(text);
+          
+          // Add domain info to the category
+          const categoryItem = {
+            ...currentPost.categories._lastItem,
+            _cdata: text
+          };
+          
+          // Add the category to the list
+          currentPost.categories.push(categoryItem);
           return;
         }
         
@@ -211,11 +281,40 @@ async function runTest() {
     };
     
     parser.oncdata = (text) => {
-      if (inItem && currentPost && currentTag === 'content:encoded') {
-        if (!currentPost[currentTag]) {
+      if (inPostMeta && currentTag === 'wp:meta_value') {
+        currentMetaValue = text;
+        return;
+      }
+      
+      if (inItem && currentPost) {
+        if (currentTag === 'content:encoded') {
+          if (!currentPost[currentTag]) {
+            currentPost[currentTag] = text;
+          } else {
+            currentPost[currentTag] += text;
+          }
+        } else if (currentTag === 'excerpt:encoded') {
           currentPost[currentTag] = text;
-        } else {
-          currentPost[currentTag] += text;
+        } else if (currentTag === 'dc:creator') {
+          currentPost[currentTag] = text;
+        } else if (currentTag === 'category') {
+          // For CDATA in categories
+          if (!currentPost.categories) {
+            currentPost.categories = [];
+          }
+          
+          // Update the last category item with the CDATA content
+          if (currentPost.categories.length > 0) {
+            const lastIndex = currentPost.categories.length - 1;
+            currentPost.categories[lastIndex]._cdata = text;
+          } else {
+            // If no category item exists yet, create one
+            const categoryItem = {
+              ...currentPost.categories._lastItem,
+              _cdata: text
+            };
+            currentPost.categories.push(categoryItem);
+          }
         }
       }
     };
