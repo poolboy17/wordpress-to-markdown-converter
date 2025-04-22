@@ -18,7 +18,19 @@ export default function Home() {
     preserveImages: true,
     processShortcodes: true,
     includeMetadata: true,
-    splitFiles: true
+    splitFiles: true,
+    // Content filtering options with defaults
+    filterLowValueContent: false,
+    minWordCount: 700,
+    minTextToHtmlRatio: 0.5,
+    excludeEmbedOnlyPosts: true,
+    excludeDraftPosts: true,
+    excludeNoImages: false,
+    // System page filtering
+    excludeTagPages: true,
+    excludeArchivePages: true,
+    excludeAuthorPages: true,
+    excludePaginatedPages: true
   });
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const { toast } = useToast();
