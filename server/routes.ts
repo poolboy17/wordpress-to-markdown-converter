@@ -83,247 +83,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // prefix all routes with /api
 
   // Route to upload a WordPress XML file
-  app.post('/api/upload', upload.single('file'), async (req, res, next) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ 
-          status: 'fail',
-          message: 'No file uploaded',
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      // Parse options
-      let options;
-      try {
-        options = conversionOptionsSchema.parse(req.body.options ? JSON.parse(req.body.options) : {});
-      } catch (parseError: any) {
-        console.error('Error parsing conversion options:', parseError);
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Invalid conversion options',
-          data: { error: parseError.message },
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      // Create a new conversion record
-      const conversion = await storage.createConversion({
-        filename: req.file.originalname,
-        status: 'processing',
-        totalPosts: 0,
-        processedPosts: 0,
-        options,
-        createdAt: new Date().toISOString(),
-      });
-
-      // Return the conversion ID immediately so the client can start polling for progress
-      res.status(201).json({ 
-        status: 'success',
-        conversionId: conversion.id, 
-        message: 'Conversion started successfully',
-        timestamp: new Date().toISOString()
-      });
-
-      // Start processing the file in the background
-      processXmlFile(req.file.path, conversion.id, options)
-        .catch(err => {
-          console.error('Error processing XML file:', err);
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-          storage.updateConversionStatus(conversion.id, 'failed');
-          
-          // Add error details to the conversion record
-          // Note: In a real implementation, you might want to add an 'errorDetails' field to the Conversion type
-          // This is a simplified approach for demonstration purposes
-          storage.updateConversionProgress(conversion.id, 0, 0)
-            .catch(updateErr => {
-              console.error('Error updating conversion after failure:', updateErr);
-            });
-        });
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      next(error); // Pass to global error handler
+  app.post('/api/upload', upload.single('file'), catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.file) {
+      throw new AppError('No file uploaded', 400);
     }
-  });
+
+    // Parse options
+    let options;
+    try {
+      options = conversionOptionsSchema.parse(req.body.options ? JSON.parse(req.body.options) : {});
+    } catch (parseError: any) {
+      console.error('Error parsing conversion options:', parseError);
+      throw new AppError('Invalid conversion options', 400, { error: parseError.message });
+    }
+
+    // Create a new conversion record
+    const conversion = await storage.createConversion({
+      filename: req.file.originalname,
+      status: 'processing',
+      totalPosts: 0,
+      processedPosts: 0,
+      options,
+      createdAt: new Date().toISOString(),
+    });
+
+    // Return the conversion ID immediately so the client can start polling for progress
+    res.status(201).json({ 
+      status: 'success',
+      conversionId: conversion.id, 
+      message: 'Conversion started successfully',
+      timestamp: new Date().toISOString()
+    });
+
+    // Start processing the file in the background
+    processXmlFile(req.file.path, conversion.id, options)
+      .catch(err => {
+        console.error('Error processing XML file:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        storage.updateConversionStatus(conversion.id, 'failed');
+        
+        // Add error details to the conversion record
+        storage.updateConversionProgress(conversion.id, 0, 0)
+          .catch(updateErr => {
+            console.error('Error updating conversion after failure:', updateErr);
+          });
+      });
+  }));
 
   // Route to get conversion progress
-  app.get('/api/conversions/:id/progress', async (req, res, next) => {
-    try {
-      const conversionId = parseInt(req.params.id);
-      
-      // Check if ID is valid
-      if (isNaN(conversionId)) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Invalid conversion ID',
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      const conversion = await storage.getConversion(conversionId);
-
-      if (!conversion) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Conversion not found',
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      const processedPosts = conversion.processedPosts || 0;
-      const totalPosts = conversion.totalPosts || 0;
-      
-      res.json({
-        status: 'success',
-        data: {
-          conversionStatus: conversion.status,
-          processed: processedPosts,
-          total: totalPosts,
-          percentage: totalPosts > 0 
-            ? Math.round((processedPosts / totalPosts) * 100) 
-            : 0
-        },
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Error getting conversion progress:', error);
-      next(error);
+  app.get('/api/conversions/:id/progress', catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const conversionId = parseInt(req.params.id);
+    
+    // Check if ID is valid
+    if (isNaN(conversionId)) {
+      throw new AppError('Invalid conversion ID', 400);
     }
-  });
+    
+    const conversion = await storage.getConversion(conversionId);
+
+    if (!conversion) {
+      throw new AppError('Conversion not found', 404);
+    }
+
+    const processedPosts = conversion.processedPosts || 0;
+    const totalPosts = conversion.totalPosts || 0;
+    
+    res.json({
+      status: 'success',
+      data: {
+        conversionStatus: conversion.status,
+        processed: processedPosts,
+        total: totalPosts,
+        percentage: totalPosts > 0 
+          ? Math.round((processedPosts / totalPosts) * 100) 
+          : 0
+      },
+      timestamp: new Date().toISOString()
+    });
+  }));
 
   // Route to get all posts for a conversion
-  app.get('/api/conversions/:id/posts', async (req, res, next) => {
-    try {
-      const conversionId = parseInt(req.params.id);
-      
-      // Check if ID is valid
-      if (isNaN(conversionId)) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Invalid conversion ID',
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      const conversion = await storage.getConversion(conversionId);
-      
-      // Check if conversion exists
-      if (!conversion) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Conversion not found',
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      const posts = await storage.getMarkdownPosts(conversionId);
+  app.get('/api/conversions/:id/posts', catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const conversionId = parseInt(req.params.id);
+    
+    // Check if ID is valid
+    if (isNaN(conversionId)) {
+      throw new AppError('Invalid conversion ID', 400);
+    }
+    
+    const conversion = await storage.getConversion(conversionId);
+    
+    // Check if conversion exists
+    if (!conversion) {
+      throw new AppError('Conversion not found', 404);
+    }
+    
+    const posts = await storage.getMarkdownPosts(conversionId);
 
-      // If conversion is complete but no posts found, it might indicate an issue
-      if (conversion.status === 'completed' && posts.length === 0) {
-        return res.status(200).json({
-          status: 'success',
-          data: [],
-          message: 'No posts were found or all posts were filtered out',
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      res.json({
+    // If conversion is complete but no posts found, it might indicate an issue
+    if (conversion.status === 'completed' && posts.length === 0) {
+      return res.status(200).json({
         status: 'success',
-        data: posts,
+        data: [],
+        message: 'No posts were found or all posts were filtered out',
         timestamp: new Date().toISOString()
       });
-    } catch (error) {
-      console.error('Error getting posts:', error);
-      next(error);
     }
-  });
+
+    res.json({
+      status: 'success',
+      data: posts,
+      timestamp: new Date().toISOString()
+    });
+  }));
 
   // Route to get a specific post
-  app.get('/api/posts/:id', async (req, res, next) => {
-    try {
-      const postId = parseInt(req.params.id);
-      
-      // Check if ID is valid
-      if (isNaN(postId)) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Invalid post ID',
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      const post = await storage.getMarkdownPost(postId);
-
-      if (!post) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Post not found',
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      res.json({
-        status: 'success',
-        data: post,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Error getting post:', error);
-      next(error);
+  app.get('/api/posts/:id', catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const postId = parseInt(req.params.id);
+    
+    // Check if ID is valid
+    if (isNaN(postId)) {
+      throw new AppError('Invalid post ID', 400);
     }
-  });
+    
+    const post = await storage.getMarkdownPost(postId);
+
+    if (!post) {
+      throw new AppError('Post not found', 404);
+    }
+
+    res.json({
+      status: 'success',
+      data: post,
+      timestamp: new Date().toISOString()
+    });
+  }));
 
   // Route to download all posts as a zip file
-  app.get('/api/conversions/:id/download', async (req, res, next) => {
-    try {
-      const conversionId = parseInt(req.params.id);
-      
-      // Check if ID is valid
-      if (isNaN(conversionId)) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Invalid conversion ID',
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      const conversion = await storage.getConversion(conversionId);
-      
-      // Check if conversion exists
-      if (!conversion) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Conversion not found',
-          timestamp: new Date().toISOString()
-        });
-      }
+  app.get('/api/conversions/:id/download', catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const conversionId = parseInt(req.params.id);
+    
+    // Check if ID is valid
+    if (isNaN(conversionId)) {
+      throw new AppError('Invalid conversion ID', 400);
+    }
+    
+    const conversion = await storage.getConversion(conversionId);
+    
+    // Check if conversion exists
+    if (!conversion) {
+      throw new AppError('Conversion not found', 404);
+    }
 
-      // Check if conversion is completed
-      if (conversion.status !== 'completed') {
-        return res.status(400).json({
-          status: 'fail',
-          message: `Cannot download: conversion is in '${conversion.status}' status`,
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      const posts = await storage.getMarkdownPosts(conversionId);
-      
-      // Check if there are any posts to download
-      if (!posts || posts.length === 0) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'No posts found for this conversion',
-          timestamp: new Date().toISOString()
-        });
-      }
+    // Check if conversion is completed
+    if (conversion.status !== 'completed') {
+      throw new AppError(`Cannot download: conversion is in '${conversion.status}' status`, 400);
+    }
+    
+    const posts = await storage.getMarkdownPosts(conversionId);
+    
+    // Check if there are any posts to download
+    if (!posts || posts.length === 0) {
+      throw new AppError('No posts found for this conversion', 404);
+    }
 
-      // Create a zip file
-      const zip = new JSZip();
-      
-      // Add a README file with information about the conversion
-      const readmeContent = `# WordPress to Markdown Conversion
+    // Create a zip file
+    const zip = new JSZip();
+    
+    // Add a README file with information about the conversion
+    const readmeContent = `# WordPress to Markdown Conversion
       
 Converted from: ${conversion.filename}
 Date: ${new Date(conversion.createdAt).toLocaleString()}
@@ -337,68 +265,60 @@ ${Object.entries(conversion.options as Record<string, any>)
 ---
 Generated by WordPress to Markdown Converter
 `;
+    
+    zip.file('README.md', readmeContent);
+
+    // Add each post to the zip
+    for (const post of posts) {
+      let filename = '';
       
-      zip.file('README.md', readmeContent);
+      if ((conversion.options as any)?.splitFiles) {
+        // Create a safe filename from the post title
+        const safeTitle = post.slug.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        filename = `${safeTitle}.md`;
+      } else {
+        filename = `posts/${post.id}.md`;
+      }
 
-      // Add each post to the zip
-      for (const post of posts) {
-        let filename = '';
+      // Format the markdown content with metadata as frontmatter if requested
+      let content = '';
+      if ((conversion.options as any)?.includeMetadata) {
+        content += '---\n';
+        content += `title: "${post.title}"\n`;
+        content += `date: "${post.date}"\n`;
         
-        if ((conversion.options as any)?.splitFiles) {
-          // Create a safe filename from the post title
-          const safeTitle = post.slug.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-          filename = `${safeTitle}.md`;
-        } else {
-          filename = `posts/${post.id}.md`;
-        }
-
-        // Format the markdown content with metadata as frontmatter if requested
-        let content = '';
-        if ((conversion.options as any)?.includeMetadata) {
-          content += '---\n';
-          content += `title: "${post.title}"\n`;
-          content += `date: "${post.date}"\n`;
-          
-          // Add other metadata from the metadata object
-          for (const [key, value] of Object.entries(post.metadata as Record<string, any>)) {
-            if (typeof value === 'string') {
-              content += `${key}: "${value}"\n`;
-            } else if (Array.isArray(value)) {
-              content += `${key}: [${value.map(v => `"${v}"`).join(', ')}]\n`;
-            }
+        // Add other metadata from the metadata object
+        for (const [key, value] of Object.entries(post.metadata as Record<string, any>)) {
+          if (typeof value === 'string') {
+            content += `${key}: "${value}"\n`;
+          } else if (Array.isArray(value)) {
+            content += `${key}: [${value.map(v => `"${v}"`).join(', ')}]\n`;
           }
-          
-          content += '---\n\n';
         }
-
-        content += post.content;
-        zip.file(filename, content);
-      }
-
-      try {
-        // Generate the zip file
-        const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
-
-        // Set headers for download
-        const safeFilename = conversion.filename.replace(/[^a-z0-9\.]/gi, '-').toLowerCase().replace('.xml', '');
-        res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}.md.zip"`);
-        res.setHeader('Content-Type', 'application/zip');
         
-        // Send the zip file
-        res.send(zipBuffer);
-      } catch (zipError) {
-        console.error('Error generating zip file:', zipError);
-        return res.status(500).json({
-          status: 'error',
-          message: 'Failed to generate zip file',
-          timestamp: new Date().toISOString()
-        });
+        content += '---\n\n';
       }
-    } catch (error) {
-      console.error('Error downloading posts:', error);
-      next(error);
+
+      content += post.content;
+      zip.file(filename, content);
     }
-  });
+
+    try {
+      // Generate the zip file
+      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+
+      // Set headers for download
+      const safeFilename = conversion.filename.replace(/[^a-z0-9\.]/gi, '-').toLowerCase().replace('.xml', '');
+      res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}.md.zip"`);
+      res.setHeader('Content-Type', 'application/zip');
+      
+      // Send the zip file
+      res.send(zipBuffer);
+    } catch (zipError) {
+      console.error('Error generating zip file:', zipError);
+      throw new AppError('Failed to generate zip file', 500);
+    }
+  }));
 
   const httpServer = createServer(app);
   return httpServer;
