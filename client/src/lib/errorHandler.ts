@@ -1,7 +1,8 @@
 /**
  * Client-side error handling utilities for the WordPress to Markdown converter
  */
-import { toast } from "@/hooks/use-toast";
+// Use direct component import instead of hook to avoid circular dependency
+import { toast as showToast } from "@/hooks/use-toast";
 
 export interface ApiErrorResponse {
   status: string;
@@ -121,7 +122,7 @@ export async function handleApiResponse(response: Response): Promise<any> {
 export function useErrorToast() {
   return {
     showError: (error: any, title = 'Error') => {
-      toast({
+      showToast({
         title: title,
         description: getErrorMessage(error),
         variant: "destructive"
