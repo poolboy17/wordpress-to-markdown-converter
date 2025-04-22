@@ -1,214 +1,352 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0"
-  xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"
-  xmlns:content="http://purl.org/rss/1.0/modules/content/"
-  xmlns:wfw="http://wellformedweb.org/CommentAPI/"
-  xmlns:dc="http://purl.org/dc/elements/1.1/"
-  xmlns:wp="http://wordpress.org/export/1.2/">
-  <channel>
-    <title>Test WordPress Blog</title>
-    <link>https://example.com</link>
-    <description>Sample content for testing</description>
-    <pubDate>Mon, 22 Apr 2023 12:00:00 +0000</pubDate>
-    <language>en-US</language>
-    <wp:wxr_version>1.2</wp:wxr_version>
-    <wp:base_site_url>https://example.com</wp:base_site_url>
-    <wp:base_blog_url>https://example.com</wp:base_blog_url>
+	xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:wp="http://wordpress.org/export/1.2/"
+>
+<channel>
+	<title>Sample WordPress Site</title>
+	<link>https://example.com</link>
+	<description>Just another WordPress site</description>
+	<pubDate>Tue, 04 Apr 2023 12:00:00 +0000</pubDate>
+	<language>en-US</language>
+	<wp:wxr_version>1.2</wp:wxr_version>
+	
+	<!-- Sample Categories -->
+	<wp:category>
+		<wp:term_id>1</wp:term_id>
+		<wp:category_nicename>uncategorized</wp:category_nicename>
+		<wp:category_parent></wp:category_parent>
+		<wp:cat_name><![CDATA[Uncategorized]]></wp:cat_name>
+	</wp:category>
+	<wp:category>
+		<wp:term_id>2</wp:term_id>
+		<wp:category_nicename>sample-category</wp:category_nicename>
+		<wp:category_parent></wp:category_parent>
+		<wp:cat_name><![CDATA[Sample Category]]></wp:cat_name>
+	</wp:category>
 
-    <!-- High-value post with good content -->
-    <item>
-      <title>High Quality Article</title>
-      <link>https://example.com/high-quality-article</link>
-      <pubDate>Mon, 22 Apr 2023 10:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=1</guid>
-      <wp:post_id>1</wp:post_id>
-      <wp:post_date>2023-04-22 10:00:00</wp:post_date>
-      <wp:post_type>post</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>high-quality-article</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is a high-quality article with over 700 words of rich content and a good text-to-HTML ratio.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
-        <img src="example.jpg" alt="Example image" />
-        <p>Curabitur non ultricies felis. Proin fermentum massa sit amet tellus faucibus efficitur. Suspendisse potenti. Cras consectetur libero in orci facilisis, in consequat augue egestas. Mauris elementum arcu nisl, sed pulvinar dui bibendum quis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Cras accumsan ligula at purus ultrices venenatis.</p>
-        <p>Phasellus fringilla augue nibh, in feugiat purus porta id. Etiam a purus ac lorem condimentum placerat. Quisque sit amet tempus orci. Vivamus venenatis quam ac eros hendrerit, non dictum orci molestie. Nulla rhoncus nunc quis arcu tincidunt imperdiet. Donec vel orci aliquet, consectetur enim sit amet, interdum orci. Integer sollicitudin fermentum orci sit amet tincidunt. Donec hendrerit elit ut nulla convallis tristique.</p>
-        <p>Etiam efficitur, arcu nec maximus suscipit, purus leo eleifend nisl, sit amet tempus magna tortor vel sem. In quis commodo augue. Proin sit amet eleifend arcu, eget ultricies metus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nulla rutrum tellus at aliquam sagittis. Integer fermentum sem quis urna fermentum congue. Proin vehicula elit luctus, commodo nisi eu, aliquam dui. Suspendisse suscipit urna sed dui aliquet ornare. Aenean gravida pharetra justo, sit amet gravida lacus eleifend eu. Proin a urna at neque tincidunt finibus vel at mi.</p>
-        <p>Suspendisse vitae vehicula nisi. Nam at nisl est. Nulla facilisi. Duis id ante sagittis, molestie lorem et, dignissim enim. Aliquam ultricies nisl sit amet nulla condimentum tincidunt. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sed metus id dui condimentum vehicula a vel eros. Integer eu interdum turpis, a euismod nisi. Praesent a eros sit amet justo tempus posuere. Nulla facilisi. Aliquam erat volutpat. Integer sagittis sapien sit amet justo dignissim tempor.</p>
-        <p>Integer porttitor sollicitudin efficitur. Ut sit amet quam ac turpis finibus pellentesque. Phasellus vel nibh sapien. Praesent quis libero nec nisl pretium consequat. Donec nulla mauris, pretium ut vehicula eu, interdum quis felis. Aenean dictum dui nisi, non convallis elit aliquam at. Ut quis sem quis mi mattis consectetur. Vestibulum ac risus ac risus sodales facilisis sagittis et enim. Suspendisse at egestas dui. Cras nec commodo leo. Nullam blandit magna ut eros congue ultrices.</p>
-      ]]></content:encoded>
-      <category domain="category"><![CDATA[Featured]]></category>
-      <category domain="category"><![CDATA[Technology]]></category>
-      <category domain="post_tag"><![CDATA[quality]]></category>
-      <category domain="post_tag"><![CDATA[example]]></category>
-    </item>
-
-    <!-- Low-value post with few words -->
-    <item>
-      <title>Low Word Count Post</title>
-      <link>https://example.com/low-word-count</link>
-      <pubDate>Mon, 22 Apr 2023 11:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=2</guid>
-      <wp:post_id>2</wp:post_id>
-      <wp:post_date>2023-04-22 11:00:00</wp:post_date>
-      <wp:post_type>post</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>low-word-count</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is a short post with only a few words.</p>
-        <p>It doesn't contain much valuable content.</p>
-        <p>The word count is well below 700.</p>
-      ]]></content:encoded>
-      <category domain="category"><![CDATA[Uncategorized]]></category>
-    </item>
-
-    <!-- Embed-heavy post -->
-    <item>
-      <title>Embed Only Post</title>
-      <link>https://example.com/embed-only</link>
-      <pubDate>Mon, 22 Apr 2023 12:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=3</guid>
-      <wp:post_id>3</wp:post_id>
-      <wp:post_date>2023-04-22 12:00:00</wp:post_date>
-      <wp:post_type>post</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>embed-only</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>Check out this video:</p>
-        <iframe width="560" height="315" src="https://www.youtube.com/embed/example" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        <p>Wasn't that great?</p>
-      ]]></content:encoded>
-      <category domain="category"><![CDATA[Videos]]></category>
-    </item>
-
-    <!-- Draft post -->
-    <item>
-      <title>Draft Post</title>
-      <link>https://example.com/draft-post</link>
-      <pubDate>Mon, 22 Apr 2023 13:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=4</guid>
-      <wp:post_id>4</wp:post_id>
-      <wp:post_date>2023-04-22 13:00:00</wp:post_date>
-      <wp:post_type>post</wp:post_type>
-      <wp:status>draft</wp:status>
-      <wp:post_name>draft-post</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is a draft post that hasn't been published yet.</p>
-        <p>It contains some content that's still being worked on.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-      ]]></content:encoded>
-      <category domain="category"><![CDATA[Uncategorized]]></category>
-    </item>
-
-    <!-- Tag page -->
-    <item>
-      <title>Tag: Example</title>
-      <link>https://example.com/tag/example</link>
-      <pubDate>Mon, 22 Apr 2023 14:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=5</guid>
-      <wp:post_id>5</wp:post_id>
-      <wp:post_date>2023-04-22 14:00:00</wp:post_date>
-      <wp:post_type>page</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>tag-example</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is a tag archive page for the "Example" tag.</p>
-        <ul>
-          <li><a href="/post1">Post 1</a></li>
-          <li><a href="/post2">Post 2</a></li>
-        </ul>
-      ]]></content:encoded>
-    </item>
-
-    <!-- Archive page -->
-    <item>
-      <title>Archive: April 2023</title>
-      <link>https://example.com/2023/04</link>
-      <pubDate>Mon, 22 Apr 2023 15:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=6</guid>
-      <wp:post_id>6</wp:post_id>
-      <wp:post_date>2023-04-22 15:00:00</wp:post_date>
-      <wp:post_type>page</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>archive-april-2023</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is an archive page for April 2023.</p>
-        <ul>
-          <li><a href="/post1">Post 1</a></li>
-          <li><a href="/post2">Post 2</a></li>
-        </ul>
-      ]]></content:encoded>
-    </item>
-
-    <!-- Author page -->
-    <item>
-      <title>Author: Admin</title>
-      <link>https://example.com/author/admin</link>
-      <pubDate>Mon, 22 Apr 2023 16:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=7</guid>
-      <wp:post_id>7</wp:post_id>
-      <wp:post_date>2023-04-22 16:00:00</wp:post_date>
-      <wp:post_type>page</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>author-admin</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is an author page for Admin.</p>
-        <ul>
-          <li><a href="/post1">Post 1</a></li>
-          <li><a href="/post2">Post 2</a></li>
-        </ul>
-      ]]></content:encoded>
-    </item>
-
-    <!-- Paginated duplicate -->
-    <item>
-      <title>Example Post Page 2</title>
-      <link>https://example.com/example-post/page/2</link>
-      <pubDate>Mon, 22 Apr 2023 17:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=8</guid>
-      <wp:post_id>8</wp:post_id>
-      <wp:post_date>2023-04-22 17:00:00</wp:post_date>
-      <wp:post_type>post</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>example-post-page-2</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is page 2 of an example post.</p>
-        <p>It's a duplicate of content that appears elsewhere.</p>
-      ]]></content:encoded>
-      <category domain="category"><![CDATA[Uncategorized]]></category>
-    </item>
-
-    <!-- Good post with no images -->
-    <item>
-      <title>Text-Only Article</title>
-      <link>https://example.com/text-only-article</link>
-      <pubDate>Mon, 22 Apr 2023 18:00:00 +0000</pubDate>
-      <dc:creator><![CDATA[admin]]></dc:creator>
-      <guid isPermaLink="false">https://example.com/?p=9</guid>
-      <wp:post_id>9</wp:post_id>
-      <wp:post_date>2023-04-22 18:00:00</wp:post_date>
-      <wp:post_type>post</wp:post_type>
-      <wp:status>publish</wp:status>
-      <wp:post_name>text-only-article</wp:post_name>
-      <content:encoded><![CDATA[
-        <p>This is a high-quality article with no images but over 700 words.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
-        <p>Curabitur non ultricies felis. Proin fermentum massa sit amet tellus faucibus efficitur. Suspendisse potenti. Cras consectetur libero in orci facilisis, in consequat augue egestas. Mauris elementum arcu nisl, sed pulvinar dui bibendum quis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Cras accumsan ligula at purus ultrices venenatis.</p>
-        <p>Phasellus fringilla augue nibh, in feugiat purus porta id. Etiam a purus ac lorem condimentum placerat. Quisque sit amet tempus orci. Vivamus venenatis quam ac eros hendrerit, non dictum orci molestie. Nulla rhoncus nunc quis arcu tincidunt imperdiet. Donec vel orci aliquet, consectetur enim sit amet, interdum orci. Integer sollicitudin fermentum orci sit amet tincidunt. Donec hendrerit elit ut nulla convallis tristique.</p>
-        <p>Etiam efficitur, arcu nec maximus suscipit, purus leo eleifend nisl, sit amet tempus magna tortor vel sem. In quis commodo augue. Proin sit amet eleifend arcu, eget ultricies metus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nulla rutrum tellus at aliquam sagittis. Integer fermentum sem quis urna fermentum congue. Proin vehicula elit luctus, commodo nisi eu, aliquam dui. Suspendisse suscipit urna sed dui aliquet ornare. Aenean gravida pharetra justo, sit amet gravida lacus eleifend eu. Proin a urna at neque tincidunt finibus vel at mi.</p>
-        <p>Suspendisse vitae vehicula nisi. Nam at nisl est. Nulla facilisi. Duis id ante sagittis, molestie lorem et, dignissim enim. Aliquam ultricies nisl sit amet nulla condimentum tincidunt. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus sed metus id dui condimentum vehicula a vel eros. Integer eu interdum turpis, a euismod nisi. Praesent a eros sit amet justo tempus posuere. Nulla facilisi. Aliquam erat volutpat. Integer sagittis sapien sit amet justo dignissim tempor.</p>
-        <p>Integer porttitor sollicitudin efficitur. Ut sit amet quam ac turpis finibus pellentesque. Phasellus vel nibh sapien. Praesent quis libero nec nisl pretium consequat. Donec nulla mauris, pretium ut vehicula eu, interdum quis felis. Aenean dictum dui nisi, non convallis elit aliquam at. Ut quis sem quis mi mattis consectetur. Vestibulum ac risus ac risus sodales facilisis sagittis et enim. Suspendisse at egestas dui. Cras nec commodo leo. Nullam blandit magna ut eros congue ultrices.</p>
-      ]]></content:encoded>
-      <category domain="category"><![CDATA[Articles]]></category>
-      <category domain="post_tag"><![CDATA[text]]></category>
-    </item>
-
-  </channel>
+	<!-- Sample Tags -->
+	<wp:tag>
+		<wp:term_id>3</wp:term_id>
+		<wp:tag_slug>sample-tag</wp:tag_slug>
+		<wp:tag_name><![CDATA[Sample Tag]]></wp:tag_name>
+	</wp:tag>
+	
+	<!-- High-quality post -->
+	<item>
+		<title>High Quality Article</title>
+		<link>https://example.com/high-quality-article/</link>
+		<pubDate>Tue, 04 Apr 2023 12:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=1</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>This is a high-quality article with over 700 words of rich content and a good text-to-HTML ratio.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<img src="example.jpg" alt="Example image" />
+			<p>Curabitur non ultricies felis. Proin fermentum massa sit amet tellus faucibus efficitur. Suspendisse potenti. Cras consectetur libero in orci facilisis, in consequat augue egestas. Mauris elementum arcu nisl, sed pulvinar dui bibendum quis.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This is a high-quality article excerpt.]]></excerpt:encoded>
+		<wp:post_id>1</wp:post_id>
+		<wp:post_date>2023-04-04 12:00:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:00:00</wp:post_date_gmt>
+		<wp:comment_status>open</wp:comment_status>
+		<wp:ping_status>open</wp:ping_status>
+		<wp:post_name>high-quality-article</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>post</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="sample-category"><![CDATA[Sample Category]]></category>
+		<category domain="post_tag" nicename="sample-tag"><![CDATA[Sample Tag]]></category>
+	</item>
+	
+	<!-- Low word count post -->
+	<item>
+		<title>Low Word Count Post</title>
+		<link>https://example.com/low-word-count-post/</link>
+		<pubDate>Tue, 04 Apr 2023 12:05:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=2</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>This is a short post with only a few words.</p>
+			<p>It doesn't contain much valuable content.</p>
+			<p>The word count is well below 700.</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This is a short post excerpt.]]></excerpt:encoded>
+		<wp:post_id>2</wp:post_id>
+		<wp:post_date>2023-04-04 12:05:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:05:00</wp:post_date_gmt>
+		<wp:comment_status>open</wp:comment_status>
+		<wp:ping_status>open</wp:ping_status>
+		<wp:post_name>low-word-count-post</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>post</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="uncategorized"><![CDATA[Uncategorized]]></category>
+	</item>
+	
+	<!-- Embed heavy post -->
+	<item>
+		<title>Embed Heavy Post</title>
+		<link>https://example.com/embed-heavy-post/</link>
+		<pubDate>Tue, 04 Apr 2023 12:10:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=3</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>Check out this video:</p>
+			<iframe width="560" height="315" src="https://www.youtube.com/embed/example" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+			<p>Wasn't that great?</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[Check out this video.]]></excerpt:encoded>
+		<wp:post_id>3</wp:post_id>
+		<wp:post_date>2023-04-04 12:10:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:10:00</wp:post_date_gmt>
+		<wp:comment_status>open</wp:comment_status>
+		<wp:ping_status>open</wp:ping_status>
+		<wp:post_name>embed-heavy-post</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>post</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="uncategorized"><![CDATA[Uncategorized]]></category>
+	</item>
+	
+	<!-- Draft post -->
+	<item>
+		<title>Draft Post</title>
+		<link>https://example.com/draft-post/</link>
+		<pubDate>Tue, 04 Apr 2023 12:15:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=4</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>This is a draft post that isn't published yet.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<img src="example.jpg" alt="Example image" />
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This is a draft post excerpt.]]></excerpt:encoded>
+		<wp:post_id>4</wp:post_id>
+		<wp:post_date>2023-04-04 12:15:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:15:00</wp:post_date_gmt>
+		<wp:comment_status>open</wp:comment_status>
+		<wp:ping_status>open</wp:ping_status>
+		<wp:post_name>draft-post</wp:post_name>
+		<wp:status>draft</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>post</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="sample-category"><![CDATA[Sample Category]]></category>
+	</item>
+	
+	<!-- Tag page -->
+	<item>
+		<title>Tag: Sample Tag</title>
+		<link>https://example.com/tag/sample-tag/</link>
+		<pubDate>Tue, 04 Apr 2023 12:20:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=5</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>This is a tag page for the Sample Tag.</p>
+			<p>It lists all posts with this tag.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This is a tag page excerpt.]]></excerpt:encoded>
+		<wp:post_id>5</wp:post_id>
+		<wp:post_date>2023-04-04 12:20:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:20:00</wp:post_date_gmt>
+		<wp:comment_status>closed</wp:comment_status>
+		<wp:ping_status>closed</wp:ping_status>
+		<wp:post_name>tag-sample-tag</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>page</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+	</item>
+	
+	<!-- Archive page -->
+	<item>
+		<title>Archive: April 2023</title>
+		<link>https://example.com/2023/04/</link>
+		<pubDate>Tue, 04 Apr 2023 12:25:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=6</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>This is an archive page for April 2023.</p>
+			<p>It lists all posts from this month.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This is an archive page excerpt.]]></excerpt:encoded>
+		<wp:post_id>6</wp:post_id>
+		<wp:post_date>2023-04-04 12:25:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:25:00</wp:post_date_gmt>
+		<wp:comment_status>closed</wp:comment_status>
+		<wp:ping_status>closed</wp:ping_status>
+		<wp:post_name>archive-april-2023</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>page</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+	</item>
+	
+	<!-- Author page -->
+	<item>
+		<title>Author: Admin</title>
+		<link>https://example.com/author/admin/</link>
+		<pubDate>Tue, 04 Apr 2023 12:30:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=7</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>This is an author page for Admin.</p>
+			<p>It lists all posts by this author.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This is an author page excerpt.]]></excerpt:encoded>
+		<wp:post_id>7</wp:post_id>
+		<wp:post_date>2023-04-04 12:30:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:30:00</wp:post_date_gmt>
+		<wp:comment_status>closed</wp:comment_status>
+		<wp:ping_status>closed</wp:ping_status>
+		<wp:post_name>author-admin</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>page</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+	</item>
+	
+	<!-- Paginated page -->
+	<item>
+		<title>High Quality Article - Page 2</title>
+		<link>https://example.com/high-quality-article/page/2/</link>
+		<pubDate>Tue, 04 Apr 2023 12:35:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=8</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<p>This is page 2 of the high quality article.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<img src="example2.jpg" alt="Another example image" />
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Maecenas feugiat magna vitae justo feugiat, in porta sapien facilisis. Donec euismod magna sit amet tellus sagittis, a iaculis odio eleifend. Vestibulum pretium metus vel tortor bibendum, ac congue felis ullamcorper.</p>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This is page 2 of the high quality article.]]></excerpt:encoded>
+		<wp:post_id>8</wp:post_id>
+		<wp:post_date>2023-04-04 12:35:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:35:00</wp:post_date_gmt>
+		<wp:comment_status>open</wp:comment_status>
+		<wp:ping_status>open</wp:ping_status>
+		<wp:post_name>high-quality-article-page-2</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>post</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="sample-category"><![CDATA[Sample Category]]></category>
+	</item>
+	
+	<!-- Post with poor HTML-to-text ratio -->
+	<item>
+		<title>Poor HTML Ratio Post</title>
+		<link>https://example.com/poor-html-ratio-post/</link>
+		<pubDate>Tue, 04 Apr 2023 12:40:00 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=9</guid>
+		<description></description>
+		<content:encoded><![CDATA[
+			<div class="wrapper">
+				<div class="container">
+					<div class="row">
+						<div class="col-12">
+							<div class="card">
+								<div class="card-body">
+									<h2 class="card-title">Poor HTML to Text Ratio</h2>
+									<p>This content has very few words but lots of HTML markup.</p>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+									<div class="empty-div"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		]]></content:encoded>
+		<excerpt:encoded><![CDATA[This post has a poor HTML to text ratio.]]></excerpt:encoded>
+		<wp:post_id>9</wp:post_id>
+		<wp:post_date>2023-04-04 12:40:00</wp:post_date>
+		<wp:post_date_gmt>2023-04-04 12:40:00</wp:post_date_gmt>
+		<wp:comment_status>open</wp:comment_status>
+		<wp:ping_status>open</wp:ping_status>
+		<wp:post_name>poor-html-ratio-post</wp:post_name>
+		<wp:status>publish</wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type>post</wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="uncategorized"><![CDATA[Uncategorized]]></category>
+	</item>
+</channel>
 </rss>

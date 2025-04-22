@@ -159,7 +159,7 @@ export function analyzeContentQuality(html: string, options: FilteringOptions, p
     hasImages: contentHasImages,
     hasEmbeds: isEmbedContent,
     isLowValue,
-    pageType: isSystemPage ? pageType : null
+    pageType
   };
 }
 
@@ -171,38 +171,52 @@ export function shouldProcessPost(post: any, htmlContent: string, options: Filte
   qualityMetrics: ContentQualityMetrics | null;
   skipReason?: string;
 } {
+  // If filtering is disabled, process everything
   if (!options.filterLowValueContent) {
-    return { shouldProcess: true, qualityMetrics: null };
+    return {
+      shouldProcess: true,
+      qualityMetrics: null
+    };
   }
   
-  const qualityMetrics = analyzeContentQuality(htmlContent, options, post);
-  
-  if (qualityMetrics.isLowValue) {
-    const systemPageCheck = isSystemGeneratedPage(post);
-    
-    if (systemPageCheck.isSystemPage) {
-      return { 
-        shouldProcess: false, 
-        qualityMetrics,
-        skipReason: `system-generated ${systemPageCheck.pageType} page`
-      };
-    } else {
-      return { 
-        shouldProcess: false, 
-        qualityMetrics,
-        skipReason: `low-value content (words: ${qualityMetrics.wordCount}, ratio: ${qualityMetrics.textToHtmlRatio.toFixed(2)})`
-      };
-    }
-  }
-  
-  // Check for draft posts separately
+  // Check for draft posts
   if (options.excludeDraftPosts && post['wp:status'] === 'draft') {
-    return { 
-      shouldProcess: false, 
-      qualityMetrics,
+    return {
+      shouldProcess: false,
+      qualityMetrics: null,
       skipReason: 'draft post'
     };
   }
   
-  return { shouldProcess: true, qualityMetrics };
+  // Analyze content quality
+  const qualityMetrics = analyzeContentQuality(htmlContent, options, post);
+  
+  // If content is low value, skip it
+  if (qualityMetrics.isLowValue) {
+    let skipReason = 'low-value content';
+    
+    if (qualityMetrics.pageType) {
+      skipReason = `system-generated ${qualityMetrics.pageType} page`;
+    } else if (qualityMetrics.wordCount < options.minWordCount) {
+      skipReason = `low word count (${qualityMetrics.wordCount} words, minimum: ${options.minWordCount})`;
+    } else if (qualityMetrics.textToHtmlRatio < options.minTextToHtmlRatio) {
+      skipReason = `poor text-to-HTML ratio (${qualityMetrics.textToHtmlRatio.toFixed(2)}, minimum: ${options.minTextToHtmlRatio})`;
+    } else if (options.excludeEmbedOnlyPosts && qualityMetrics.hasEmbeds) {
+      skipReason = 'embed-only post';
+    } else if (options.excludeNoImages && !qualityMetrics.hasImages) {
+      skipReason = 'post has no images';
+    }
+    
+    return {
+      shouldProcess: false,
+      qualityMetrics,
+      skipReason
+    };
+  }
+  
+  // Content passed quality checks
+  return {
+    shouldProcess: true,
+    qualityMetrics
+  };
 }
