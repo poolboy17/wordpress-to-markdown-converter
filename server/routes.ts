@@ -14,6 +14,11 @@ import fs from "fs/promises";
 import { createReadStream } from "fs";
 import { createGunzip } from "zlib";
 import os from "os";
+import { 
+  shouldProcessPost, 
+  ContentQualityMetrics,
+  FilteringOptions 
+} from "./utils/contentFiltering";
 
 // Setup file upload with multer
 const upload = multer({
@@ -314,32 +319,19 @@ async function processXmlFile(filePath: string, conversionId: number, options: a
         // Get the content from the appropriate field
         const htmlContent = currentPost['content:encoded'] || currentPost.content;
         
-        // Check content quality if filtering is enabled
-        let shouldProcess = true;
-        let qualityMetrics: ContentQualityMetrics | null = null;
+        // Use the separated content filtering module
+        const filteringResult = shouldProcessPost(
+          currentPost, 
+          htmlContent, 
+          options as FilteringOptions
+        );
         
-        if ((options as any).filterLowValueContent) {
-          qualityMetrics = analyzeContentQuality(htmlContent, options, currentPost);
-          
-          // Skip low-value content
-          if (qualityMetrics.isLowValue) {
-            shouldProcess = false;
-            
-            // Check if this is a system-generated page
-            const systemPageCheck = isSystemGeneratedPage(currentPost);
-            
-            if (systemPageCheck.isSystemPage) {
-              console.log(`Skipping system-generated ${systemPageCheck.pageType} page: "${currentPost.title}"`);
-            } else {
-              console.log(`Skipping low-value content: "${currentPost.title}" (words: ${qualityMetrics.wordCount}, ratio: ${qualityMetrics.textToHtmlRatio.toFixed(2)})`);
-            }
-          }
-          
-          // Skip draft posts if option is enabled
-          if (!qualityMetrics.isLowValue && (options as any).excludeDraftPosts && currentPost['wp:status'] === 'draft') {
-            shouldProcess = false;
-            console.log(`Skipping draft post: "${currentPost.title}"`);
-          }
+        const shouldProcess = filteringResult.shouldProcess;
+        const qualityMetrics = filteringResult.qualityMetrics;
+        
+        // Log skipped content
+        if (!shouldProcess && filteringResult.skipReason) {
+          console.log(`Skipping ${filteringResult.skipReason}: "${currentPost.title}"`);
         }
         
         if (shouldProcess) {
@@ -522,142 +514,5 @@ function slugify(text: string): string {
     .replace(/\-\-+/g, '-');  // Replace multiple - with single -
 }
 
-// Content quality analysis utilities
-interface ContentQualityMetrics {
-  wordCount: number;
-  textToHtmlRatio: number;
-  hasImages: boolean;
-  hasEmbeds: boolean;
-  isLowValue: boolean;
-}
-
-/**
- * Count words in a string
- */
-function countWords(text: string): number {
-  // Remove HTML tags first
-  const cleanText = text.replace(/<[^>]*>/g, ' ');
-  // Replace non-word characters with spaces
-  const words = cleanText.replace(/[^\w\s]/g, ' ').trim().split(/\s+/);
-  return words.filter(word => word.length > 0).length;
-}
-
-/**
- * Calculate text to HTML ratio
- * A higher ratio means more actual content vs. HTML markup
- */
-function calculateTextToHtmlRatio(html: string): number {
-  if (!html || html.length === 0) return 0;
-  
-  const textContent = html.replace(/<[^>]*>/g, '').trim();
-  return textContent.length / html.length;
-}
-
-/**
- * Check if content has images (img tags)
- */
-function hasImages(html: string): boolean {
-  return /<img[^>]*>/i.test(html);
-}
-
-/**
- * Check if content seems to be primarily embeds (iframes, embeds, etc.)
- */
-function isEmbedHeavy(html: string): boolean {
-  const embedRegex = /<(iframe|embed|object)[^>]*>/gi;
-  const embedMatches = html.match(embedRegex) || [];
-  const contentLength = html.length;
-  
-  // If the content is short and has embeds
-  return embedMatches.length > 0 && contentLength < 1000;
-}
-
-/**
- * Analyze content quality based on various metrics
- */
-/**
- * Check if the post is a system-generated page like tag, archive, author, or paginated page
- */
-function isSystemGeneratedPage(post: any): { isSystemPage: boolean; pageType: string | null } {
-  const postType = post['wp:post_type'] || '';
-  const postName = post['wp:post_name'] || '';
-  const postTitle = post.title || '';
-  const postLink = post.link || '';
-  
-  // Check for tag or category page
-  if (postType === 'page' && (
-      postTitle.toLowerCase().includes('tag:') || 
-      postTitle.toLowerCase().includes('category:') ||
-      postName.includes('tag-') || 
-      postName.includes('category-'))) {
-    return { isSystemPage: true, pageType: 'tag' };
-  }
-  
-  // Check for archive page
-  if (postType === 'page' && (
-      postTitle.toLowerCase().includes('archive') || 
-      postName.includes('archive') || 
-      postLink.includes('/20') && (postLink.includes('/0') || postLink.includes('/1')))) {
-    return { isSystemPage: true, pageType: 'archive' };
-  }
-  
-  // Check for author page
-  if (postType === 'page' && (
-      postTitle.toLowerCase().includes('author:') || 
-      postName.includes('author-') || 
-      postLink.includes('/author/'))) {
-    return { isSystemPage: true, pageType: 'author' };
-  }
-  
-  // Check for paginated duplicate
-  if (postLink.includes('/page/') || 
-      postName.includes('-page-') || 
-      postName.match(/-\d+$/) || 
-      postTitle.match(/Page \d+/i)) {
-    return { isSystemPage: true, pageType: 'paginated' };
-  }
-  
-  return { isSystemPage: false, pageType: null };
-}
-
-function analyzeContentQuality(html: string, options: any, post: any = null): ContentQualityMetrics {
-  const wordCount = countWords(html);
-  const textToHtmlRatio = calculateTextToHtmlRatio(html);
-  const contentHasImages = hasImages(html);
-  const isEmbedContent = isEmbedHeavy(html);
-  
-  // Check if this is a system-generated page
-  let isSystemPage = false;
-  let pageType = null;
-  
-  if (post) {
-    const systemPageCheck = isSystemGeneratedPage(post);
-    isSystemPage = systemPageCheck.isSystemPage;
-    pageType = systemPageCheck.pageType;
-  }
-  
-  // Determine if this is low-value content based on options
-  let isLowValue = 
-    (wordCount < options.minWordCount) || 
-    (textToHtmlRatio < options.minTextToHtmlRatio) ||
-    (options.excludeEmbedOnlyPosts && isEmbedContent) ||
-    (options.excludeNoImages && !contentHasImages);
-  
-  // Add system page checks
-  if (isSystemPage && (
-      (pageType === 'tag' && options.excludeTagPages) ||
-      (pageType === 'archive' && options.excludeArchivePages) ||
-      (pageType === 'author' && options.excludeAuthorPages) ||
-      (pageType === 'paginated' && options.excludePaginatedPages)
-     )) {
-    isLowValue = true;
-  }
-  
-  return {
-    wordCount,
-    textToHtmlRatio,
-    hasImages: contentHasImages,
-    hasEmbeds: isEmbedContent,
-    isLowValue
-  };
-}
+// Import content filtering utilities from the dedicated module
+// This functions have been relocated to server/utils/contentFiltering.ts
