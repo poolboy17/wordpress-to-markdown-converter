@@ -2,7 +2,7 @@
  * Simple test script to verify content filtering functionality
  */
 
-import { countWords, hasImages, isEmbedHeavy } from './dist/server/utils/contentFiltering.js';
+import { countWords, hasImages, isEmbedHeavy } from './dist/server/utils/test-content-filtering.js';
 
 // Test HTML samples
 const sampleHTML = {

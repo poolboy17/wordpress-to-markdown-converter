@@ -25,15 +25,32 @@ async function buildTypeScript() {
   // Read the content filtering module
   const tsContent = await fs.readFile('./server/utils/contentFiltering.ts', 'utf8');
   
-  // Convert to JavaScript by replacing TypeScript specific syntax
-  let jsContent = tsContent
+  // Create a proper ESM module
+  let jsContent = `// Generated JavaScript file from TypeScript source
+// Content filtering module for WordPress XML to Markdown converter
+
+/**
+ * Functions for analyzing content quality
+ */
+
+`;
+
+  // Add the converted TypeScript code
+  jsContent += tsContent
     // Remove interfaces
-    .replace(/export\s+interface\s+[^{]+{[^}]+}/g, '')
-    // Remove type annotations
-    .replace(/:\s*[a-zA-Z<>\[\]|]+/g, '')
+    .replace(/export\s+interface\s+[^{]+{[\s\S]+?}/g, '')
+    // Remove function return type annotations
+    .replace(/\):\s*{[^}]+}/g, ') {')
+    .replace(/\):\s*[a-zA-Z<>\[\]|]+/g, ')')
+    // Remove parameter type annotations
+    .replace(/\([^)]*\)/g, (match) => {
+      return match.replace(/:\s*[a-zA-Z<>\[\]|]+/g, '');
+    })
+    // Remove variable type annotations
+    .replace(/:\s*[a-zA-Z<>\[\]|]+(\s*=)/g, '$1')
     // Remove 'any' types
     .replace(/\s*:\s*any/g, '')
-    // Fix export statements for ESM
+    // Make sure exports are correctly formatted
     .replace(/export\s+function/g, 'export function');
   
   // Write the JavaScript file
