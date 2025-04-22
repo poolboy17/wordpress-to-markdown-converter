@@ -96,6 +96,11 @@ async function runTest() {
     let currentTag = '';
     let currentContent = '';
     let inItem = false;
+    let inPostMeta = false;
+    let currentMetaKey = '';
+    let currentMetaValue = '';
+    let currentCategoryDomain = '';
+    let currentCategoryNicename = '';
     let postCount = 0;
     let processedCount = 0;
     
@@ -108,10 +113,6 @@ async function runTest() {
     }
     
     // Set up event handlers for the SAX parser
-    let inPostMeta = false;
-    let currentMetaKey = '';
-    let currentMetaValue = '';
-    
     parser.onopentag = (node) => {
       currentTag = node.name;
       
@@ -136,101 +137,9 @@ async function runTest() {
       }
     };
     
-    parser.onclosetag = async (tagName) => {
-      if (tagName === 'wp:postmeta' && inPostMeta && currentPost) {
-        inPostMeta = false;
-        // Add the meta field to the post's custom fields
-        if (currentMetaKey && currentMetaValue) {
-          currentPost.metadata.custom_fields[currentMetaKey] = currentMetaValue;
-        }
-      } else if (tagName === 'wp:meta_key' && inPostMeta) {
-        currentMetaKey = currentContent.trim();
-        console.log("Meta key:", currentMetaKey);
-      } else if (tagName === 'wp:meta_value' && inPostMeta) {
-        currentMetaValue = currentContent;
-        console.log("Meta value:", currentMetaValue);
-      } else if (tagName === 'item' && inItem && currentPost && 
-          currentPost.title && 
-          (currentPost.content || currentPost['content:encoded'])) {
-        
-        // Get the content from the appropriate field
-        const htmlContent = currentPost['content:encoded'] || currentPost.content;
-        
-        // Convert HTML to Markdown
-        let markdownContent = turndownService.turndown(htmlContent);
-        
-        console.log(`\nConverting post: ${currentPost.title}`);
-        console.log(`Original HTML length: ${htmlContent.length}`);
-        console.log(`Converted Markdown length: ${markdownContent.length}`);
-        
-        // Process categories and tags
-        const categories = [];
-        const tags = [];
-        const custom_fields = currentPost.metadata.custom_fields || {};
-        
-        // Debug the categories structure
-        console.log("Categories object:", JSON.stringify(currentPost.categories, null, 2));
-        
-        if (currentPost.categories && Array.isArray(currentPost.categories)) {
-          // Remove the _lastItem property which is not an array item
-          const filteredCategories = currentPost.categories.filter(item => 
-            typeof item === 'object' && item !== null && !('_lastItem' in item));
-          
-          filteredCategories.forEach(cat => {
-            if (cat._domain === 'category') {
-              categories.push(cat._cdata || cat);
-            } else if (cat._domain === 'post_tag') {
-              tags.push(cat._cdata || cat);
-            }
-          });
-        }
-        
-        // Create the markdown post
-        try {
-          const post = await storage.createMarkdownPost({
-            conversionId: conversion.id,
-            title: currentPost.title,
-            content: markdownContent,
-            date: currentPost.pubDate || currentPost['wp:post_date'] || new Date().toISOString(),
-            slug: currentPost['wp:post_name'] || slugify(currentPost.title),
-            metadata: {
-              author: currentPost['dc:creator'] || '',
-              categories: categories.length ? categories : (currentPost.categories || []),
-              tags: tags.length ? tags : (currentPost['wp:post_tag'] || []),
-              status: currentPost['wp:status'] || 'publish',
-              type: currentPost['wp:post_type'] || 'post',
-              custom_fields: currentPost.metadata.custom_fields || {},
-              excerpt: currentPost['excerpt:encoded'] || ''
-            }
-          });
-          
-          console.log(`Created markdown post with ID: ${post.id}`);
-          console.log(`Title: ${post.title}`);
-          console.log(`Slug: ${post.slug}`);
-          console.log(`Date: ${post.date}`);
-          console.log(`Metadata: ${JSON.stringify(post.metadata, null, 2)}`);
-          console.log(`First 150 chars of content: ${post.content.substring(0, 150)}...`);
-          
-          processedCount++;
-          await storage.updateConversionProgress(conversion.id, processedCount, postCount);
-        } catch (err) {
-          console.error('Error creating markdown post:', err);
-        }
-        
-        inItem = false;
-        currentPost = null;
-      }
-      
-      currentTag = '';
-      currentContent = '';
-    };
-    
-    let currentCategoryDomain = '';
-    let currentCategoryNicename = '';
-    
     parser.onattribute = (attr) => {
       if (inItem && currentTag === 'category') {
-        // We'll store these temporarily until we get the CDATA content
+        // We'll store these temporarily until we get the category content
         if (attr.name === 'domain') {
           currentCategoryDomain = attr.value;
         } else if (attr.name === 'nicename') {
@@ -240,12 +149,12 @@ async function runTest() {
     };
     
     parser.ontext = (text) => {
-      // Update current content for later use
+      // Store current text content
       currentContent = text;
       
       if (inPostMeta) {
         if (currentTag === 'wp:meta_key') {
-          currentMetaKey = text;
+          currentMetaKey = text.trim();
         } else if (currentTag === 'wp:meta_value') {
           currentMetaValue = text;
         }
@@ -275,6 +184,7 @@ async function runTest() {
           return;
         }
         
+        // Handle regular text content
         if (!currentPost[currentTag]) {
           currentPost[currentTag] = text;
         } else if (Array.isArray(currentPost[currentTag])) {
@@ -303,25 +213,93 @@ async function runTest() {
         } else if (currentTag === 'dc:creator') {
           currentPost[currentTag] = text;
         } else if (currentTag === 'category') {
-          // For CDATA in categories
-          if (!currentPost.categories) {
-            currentPost.categories = [];
-          }
-          
-          // Update the last category item with the CDATA content
-          if (currentPost.categories.length > 0) {
+          // For CDATA in categories, update the last category item
+          if (currentPost.categories && currentPost.categories.length > 0) {
             const lastIndex = currentPost.categories.length - 1;
-            currentPost.categories[lastIndex]._cdata = text;
-          } else {
-            // If no category item exists yet, create one
-            const categoryItem = {
-              ...currentPost.categories._lastItem,
-              _cdata: text
-            };
-            currentPost.categories.push(categoryItem);
+            currentPost.categories[lastIndex].name = text;
+            console.log(`CDATA for category: domain=${currentPost.categories[lastIndex].domain}, name=${text}`);
           }
         }
       }
+    };
+    
+    parser.onclosetag = async (tagName) => {
+      if (tagName === 'wp:postmeta' && inPostMeta && currentPost) {
+        inPostMeta = false;
+        // Add the meta field to the post's custom fields
+        if (currentMetaKey && currentMetaValue) {
+          currentPost.metadata.custom_fields[currentMetaKey] = currentMetaValue;
+        }
+      } else if (tagName === 'item' && inItem && currentPost && 
+          currentPost.title && 
+          (currentPost.content || currentPost['content:encoded'])) {
+        
+        // Get the content from the appropriate field
+        const htmlContent = currentPost['content:encoded'] || currentPost.content;
+        
+        // Convert HTML to Markdown
+        let markdownContent = turndownService.turndown(htmlContent);
+        
+        console.log(`\nConverting post: ${currentPost.title}`);
+        console.log(`Original HTML length: ${htmlContent.length}`);
+        console.log(`Converted Markdown length: ${markdownContent.length}`);
+        
+        // Sort categories by domain
+        const categories = [];
+        const tags = [];
+        
+        if (currentPost.categories && Array.isArray(currentPost.categories)) {
+          currentPost.categories.forEach(cat => {
+            if (cat.domain === 'category') {
+              categories.push(cat.name);
+            } else if (cat.domain === 'post_tag') {
+              tags.push(cat.name);
+            }
+          });
+        }
+        
+        console.log("Categories:", categories);
+        console.log("Tags:", tags);
+        console.log("Custom fields:", currentPost.metadata.custom_fields);
+        
+        // Create the markdown post
+        try {
+          const post = await storage.createMarkdownPost({
+            conversionId: conversion.id,
+            title: currentPost.title,
+            content: markdownContent,
+            date: currentPost.pubDate || currentPost['wp:post_date'] || new Date().toISOString(),
+            slug: currentPost['wp:post_name'] || slugify(currentPost.title),
+            metadata: {
+              author: currentPost['dc:creator'] || '',
+              categories: categories,
+              tags: tags,
+              status: currentPost['wp:status'] || 'publish',
+              type: currentPost['wp:post_type'] || 'post',
+              custom_fields: currentPost.metadata.custom_fields,
+              excerpt: currentPost['excerpt:encoded'] || ''
+            }
+          });
+          
+          console.log(`Created markdown post with ID: ${post.id}`);
+          console.log(`Title: ${post.title}`);
+          console.log(`Slug: ${post.slug}`);
+          console.log(`Date: ${post.date}`);
+          console.log(`Metadata: ${JSON.stringify(post.metadata, null, 2)}`);
+          console.log(`First 150 chars of content: ${post.content.substring(0, 150)}...`);
+          
+          processedCount++;
+          await storage.updateConversionProgress(conversion.id, processedCount, postCount);
+        } catch (err) {
+          console.error('Error creating markdown post:', err);
+        }
+        
+        inItem = false;
+        currentPost = null;
+      }
+      
+      currentTag = '';
+      currentContent = '';
     };
     
     // Parse the XML
