@@ -67,6 +67,7 @@ export type FileInfo = {
   sizeFormatted: string;
   posts?: number;
   type: string;
+  file?: File; // The actual File object for upload (client-side only)
 };
 
 // Progress type

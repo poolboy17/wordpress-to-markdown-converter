@@ -82,7 +82,8 @@ export function FileUpload({ onFileSelected }: FileUploadProps) {
       name: file.name,
       size: file.size,
       sizeFormatted: formatFileSize(file.size),
-      type: file.type
+      type: file.type,
+      file: file // Store the actual File object for upload
     };
 
     onFileSelected(fileInfo);

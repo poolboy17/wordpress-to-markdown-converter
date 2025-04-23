@@ -193,10 +193,12 @@ export default function Home() {
   // Mutation for starting a conversion
   const startConversion = useMutation({
     mutationFn: async () => {
-      if (!fileInfo) return;
+      if (!fileInfo || !fileInfo.file) {
+        throw new Error('No file available for upload');
+      }
 
       const formData = new FormData();
-      formData.append('file', fileInfo as any);
+      formData.append('file', fileInfo.file);
       formData.append('options', JSON.stringify(options));
 
       try {
