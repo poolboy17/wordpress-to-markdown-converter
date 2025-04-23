@@ -203,16 +203,6 @@ export default function Home() {
 
       try {
         const response = await apiRequest('POST', '/api/upload', formData);
-        
-        if (!response.ok) {
-          // Try to parse error response
-          const errorData = await response.json().catch(() => null);
-          if (errorData && errorData.message) {
-            throw new Error(errorData.message);
-          }
-          throw new Error(`Server error: ${response.status} ${response.statusText}`);
-        }
-        
         const data = await response.json();
         return data;
       } catch (err: any) {
